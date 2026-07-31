@@ -1,0 +1,14 @@
+{
+  "name": "@priorbyte/backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Supabase schema, migrations, RLS policies, and Edge Functions.",
+  "scripts": {
+    "typecheck": "echo \"[backend] no TS sources yet\"",
+    "lint": "echo \"[backend] no TS sources yet\"",
+    "db:diff": "supabase db diff -f",
+    "db:push": "supabase db push",
+    "types:gen": "supabase gen types typescript --linked > ../shared/src/database.types.ts",
+    "clean": "rimraf .turbo"
+  }
+}

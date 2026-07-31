@@ -1,0 +1,11 @@
+{
+  "name": "@priorbyte/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plasmo Chrome extension — passive learning-event capture. Scaffolded in step 4.",
+  "scripts": {
+    "typecheck": "echo \"[extension] scaffolded in step 4\"",
+    "lint": "echo \"[extension] scaffolded in step 4\"",
+    "clean": "rimraf .turbo build .plasmo"
+  }
+}

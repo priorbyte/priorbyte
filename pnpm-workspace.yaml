@@ -1,0 +1,6 @@
+packages:
+  - 'web'
+  - 'extension'
+  - 'backend'
+  - 'ai'
+  - 'shared'

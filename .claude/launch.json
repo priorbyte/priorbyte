@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "C:\\Users\\kaush\\AppData\\Local\\pnpm-bin\\pnpm.CMD",
+      "runtimeArgs": ["--filter", "@priorbyte/web", "dev"],
+      "port": 3000
+    }
+  ]
+}
