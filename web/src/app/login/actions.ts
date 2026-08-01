@@ -1,0 +1,45 @@
+'use server';
+
+import { magicLinkSchema } from '@priorbyte/shared/schemas';
+import { createClient } from '@/lib/supabase/server';
+import { getSiteUrl, isSupabaseConfigured } from '@/lib/supabase/config';
+
+export interface LoginState {
+  status: 'idle' | 'sent' | 'error';
+  message?: string;
+  email?: string;
+}
+
+export async function sendMagicLink(
+  _prev: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  if (!isSupabaseConfigured()) {
+    return { status: 'error', message: 'Supabase is not configured yet on this deployment.' };
+  }
+
+  const parsed = magicLinkSchema.safeParse({ email: formData.get('email') });
+  if (!parsed.success) {
+    return { status: 'error', message: 'Enter a valid email address.' };
+  }
+
+  const next = String(formData.get('next') ?? '/dashboard');
+  const callback = new URL('/auth/callback', getSiteUrl());
+  // Only relative paths — an absolute `next` would make this an open redirect.
+  callback.searchParams.set('next', next.startsWith('/') ? next : '/dashboard');
+
+  const supabase = createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email: parsed.data.email,
+    options: {
+      emailRedirectTo: callback.toString(),
+      shouldCreateUser: true,
+    },
+  });
+
+  if (error) {
+    return { status: 'error', message: error.message, email: parsed.data.email };
+  }
+
+  return { status: 'sent', email: parsed.data.email };
+}

@@ -25,13 +25,18 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 /** Columns the database fills in for you. */
 type Generated = 'id' | 'created_at' | 'updated_at';
 
-interface TableShape<Row, RequiredOnInsert extends keyof Row> {
+/**
+ * `Relationships` is required: supabase-js resolves table types to `never`
+ * without it, which silently turns every query into an untyped dead end.
+ */
+type TableShape<Row, RequiredOnInsert extends keyof Row> = {
   Row: Row;
   Insert: Pick<Row, RequiredOnInsert> & Partial<Omit<Row, RequiredOnInsert>>;
   Update: Partial<Row>;
+  Relationships: [];
 }
 
-export interface ProfileRow {
+export type ProfileRow = {
   id: string;
   email: string;
   display_name: string | null;
@@ -45,7 +50,7 @@ export interface ProfileRow {
   updated_at: string;
 }
 
-export interface CourseRow {
+export type CourseRow = {
   id: string;
   code: string;
   title: string;
@@ -55,13 +60,13 @@ export interface CourseRow {
   updated_at: string;
 }
 
-export interface CourseEnrollmentRow {
+export type CourseEnrollmentRow = {
   course_id: string;
   user_id: string;
   enrolled_at: string;
 }
 
-export interface KnowledgeGraphRow {
+export type KnowledgeGraphRow = {
   id: string;
   slug: string;
   title: string;
@@ -72,13 +77,13 @@ export interface KnowledgeGraphRow {
   updated_at: string;
 }
 
-export interface KnowledgeGraphEdgeRow {
+export type KnowledgeGraphEdgeRow = {
   topic_id: string;
   prerequisite_id: string;
   strength: number;
 }
 
-export interface LearningEventRow {
+export type LearningEventRow = {
   id: string;
   user_id: string;
   type: LearningEventType;
@@ -92,7 +97,7 @@ export interface LearningEventRow {
   created_at: string;
 }
 
-export interface TopicMasteryRow {
+export type TopicMasteryRow = {
   id: string;
   user_id: string;
   topic_id: string;
@@ -102,7 +107,7 @@ export interface TopicMasteryRow {
   updated_at: string;
 }
 
-export interface TimelineEntryRow {
+export type TimelineEntryRow = {
   id: string;
   user_id: string;
   topic_id: string;
@@ -112,7 +117,7 @@ export interface TimelineEntryRow {
   occurred_at: string;
 }
 
-export interface VulnerabilityModelRow {
+export type VulnerabilityModelRow = {
   id: string;
   user_id: string;
   patterns: Json;
@@ -122,7 +127,7 @@ export interface VulnerabilityModelRow {
   created_at: string;
 }
 
-export interface PredictedErrorRow {
+export type PredictedErrorRow = {
   id: string;
   user_id: string;
   topic_id: string;
@@ -138,7 +143,7 @@ export interface PredictedErrorRow {
   resolved_at: string | null;
 }
 
-export interface GhostForkRow {
+export type GhostForkRow = {
   id: string;
   user_id: string;
   topic_id: string;
@@ -149,7 +154,7 @@ export interface GhostForkRow {
   created_at: string;
 }
 
-export interface ChatConversationRow {
+export type ChatConversationRow = {
   id: string;
   user_id: string;
   title: string | null;
@@ -158,7 +163,7 @@ export interface ChatConversationRow {
   updated_at: string;
 }
 
-export interface ChatHistoryRow {
+export type ChatHistoryRow = {
   id: string;
   user_id: string;
   conversation_id: string;
@@ -170,7 +175,7 @@ export interface ChatHistoryRow {
   created_at: string;
 }
 
-export interface ChatSharingConsentRow {
+export type ChatSharingConsentRow = {
   id: string;
   user_id: string;
   course_id: string;
@@ -179,7 +184,7 @@ export interface ChatSharingConsentRow {
   updated_at: string;
 }
 
-export interface AiUsageRow {
+export type AiUsageRow = {
   id: string;
   user_id: string;
   feature: string;
@@ -190,7 +195,7 @@ export interface AiUsageRow {
 }
 
 /** Row shape returned by the `match_learning_events` RPC. */
-export interface MatchedLearningEvent {
+export type MatchedLearningEvent = {
   id: string;
   type: LearningEventType;
   content: string;
@@ -200,7 +205,7 @@ export interface MatchedLearningEvent {
   similarity: number;
 }
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: TableShape<ProfileRow, 'id' | 'email'>;
@@ -219,7 +224,7 @@ export interface Database {
       chat_sharing_consent: TableShape<ChatSharingConsentRow, 'user_id' | 'course_id' | 'level'>;
       ai_usage: TableShape<AiUsageRow, 'user_id' | 'feature'>;
     };
-    Views: Record<string, never>;
+    Views: { [_ in never]: never };
     Functions: {
       match_learning_events: {
         Args: {
@@ -241,7 +246,7 @@ export interface Database {
         Returns: TopicMasteryRow;
       };
       ai_queries_remaining: {
-        Args: { target_user_id?: string | null };
+        Args: Record<PropertyKey, never>;
         Returns: number | null;
       };
       topic_prerequisites: {
@@ -258,7 +263,7 @@ export interface Database {
       inoculation_format: InoculationFormat;
       prediction_outcome: PredictionOutcome;
     };
-    CompositeTypes: Record<string, never>;
+    CompositeTypes: { [_ in never]: never };
   };
 }
 
