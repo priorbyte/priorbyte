@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { onboardingSchema } from '@priorbyte/shared/schemas';
 import { createClient } from '@/lib/supabase/server';
+import { DIAGNOSTIC } from './diagnostic';
 
 export interface OnboardingState {
   status: 'idle' | 'error';
@@ -29,9 +30,15 @@ export async function completeOnboarding(
   const rawSubjects = formData.getAll('subjects').map(String).filter(Boolean);
   const rawGoal = String(formData.get('goal') ?? '').trim();
 
+  const rawDiagnosticAnswers = DIAGNOSTIC.map(({ id }) => ({
+    questionId: id,
+    answer: String(formData.get(`diagnostic_${id}`) ?? '').trim(),
+  })).filter((a) => a.answer.length > 0);
+
   const parsed = onboardingSchema.safeParse({
     ...(rawGoal ? { goal: rawGoal } : {}),
     ...(rawSubjects.length ? { subjects: rawSubjects } : {}),
+    ...(rawDiagnosticAnswers.length ? { diagnosticAnswers: rawDiagnosticAnswers } : {}),
   });
 
   if (!parsed.success) {
@@ -49,6 +56,28 @@ export async function completeOnboarding(
 
   if (error) {
     return { status: 'error', message: error.message };
+  }
+
+  // Answered diagnostic questions are real signal, not throwaway survey
+  // data — capturing them as learning_events means Ghost Memory has
+  // something to search and the vulnerability model has a cold-start seed,
+  // both before the extension ever records a single event.
+  if (parsed.data.diagnosticAnswers?.length) {
+    const questionById = new Map<string, string>(DIAGNOSTIC.map((d) => [d.id, d.question]));
+    const events = parsed.data.diagnosticAnswers.map(({ questionId, answer }) => ({
+      user_id: user.id,
+      type: 'answer' as const,
+      content: `Q: ${questionById.get(questionId) ?? questionId}\nA: ${answer}`,
+      source: 'onboarding_diagnostic',
+      occurred_at: new Date().toISOString(),
+    }));
+
+    const { error: eventsError } = await supabase.from('learning_events').insert(events);
+    if (eventsError) {
+      // Non-fatal: onboarding itself succeeded, and losing five self-report
+      // answers is not worth blocking someone from reaching their dashboard.
+      console.error('Failed to store diagnostic answers as learning events:', eventsError);
+    }
   }
 
   revalidatePath('/dashboard');

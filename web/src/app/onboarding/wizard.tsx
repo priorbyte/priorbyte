@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { completeOnboarding, skipOnboarding, type OnboardingState } from './actions';
+import { DIAGNOSTIC } from './diagnostic';
 
 const INITIAL: OnboardingState = { status: 'idle' };
 
@@ -37,15 +38,6 @@ const SUBJECT_GROUPS: Record<string, readonly string[]> = {
 } as const;
 
 const STEPS = ['Goal', 'Extension', 'Subjects', 'Diagnostic'] as const;
-
-/** Five quick questions. Answers are advisory — the model learns from real work. */
-const DIAGNOSTIC = [
-  'When you get a question wrong, what usually went wrong first?',
-  'Which subject do you re-read most often without it sticking?',
-  'Do you prefer worked examples or first principles?',
-  'What is the last thing you understood, then forgot?',
-  'When are you most likely to be studying?',
-] as const;
 
 function Dots({ current }: { current: number }) {
   return (
@@ -229,23 +221,29 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
           <div className="space-y-4">
             <h1 className="text-3xl">Five quick questions</h1>
             <p className="text-silver">
-              Optional. Skipping costs you nothing — the model learns far more from your actual
-              work than from these.
+              Optional, and each one is skippable on its own — leave any blank you don&apos;t want
+              to answer.
             </p>
-            <ul className="space-y-3">
-              {DIAGNOSTIC.map((q, i) => (
-                <li key={q} className="rounded-lg border border-line bg-background p-3">
-                  <span className="font-mono text-xs text-cyan">
-                    Q{String(i + 1).padStart(2, '0')}
-                  </span>
-                  <p className="mt-1 text-sm text-silver">{q}</p>
-                </li>
+            <div className="max-h-72 space-y-3 overflow-y-auto pr-2">
+              {DIAGNOSTIC.map(({ id, question }, i) => (
+                <div key={id} className="rounded-lg border border-line bg-background p-3">
+                  <label htmlFor={id} className="block">
+                    <span className="font-mono text-xs text-cyan">
+                      Q{String(i + 1).padStart(2, '0')}
+                    </span>
+                    <p className="mt-1 text-sm text-silver">{question}</p>
+                  </label>
+                  <textarea
+                    id={id}
+                    name={`diagnostic_${id}`}
+                    rows={2}
+                    maxLength={2000}
+                    placeholder="Optional"
+                    className="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-white outline-none transition placeholder:text-muted focus:border-cyan/60"
+                  />
+                </div>
               ))}
-            </ul>
-            <p className="text-sm text-muted">
-              The interactive diagnostic ships with the AI tutor — for now, finishing here is
-              enough.
-            </p>
+            </div>
           </div>
         )}
       </div>
