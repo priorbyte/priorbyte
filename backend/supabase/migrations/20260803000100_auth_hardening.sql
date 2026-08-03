@@ -77,11 +77,18 @@ begin
 end;
 $$;
 
--- The Auth service calls this as the `supabase_auth_admin` role — it needs
--- execute rights, but never direct table access (it goes through the
--- SECURITY DEFINER functions above only).
+-- The Auth service calls these as the `supabase_auth_admin` role. Postgres
+-- grants EXECUTE to PUBLIC on every new function by default, so without the
+-- explicit revokes below both functions would also be callable directly by
+-- any signed-in user via RPC — not a privilege-escalation path (each checks
+-- auth.uid() or has no side effects), but there is no legitimate reason for
+-- a client to call either one, and Supabase's own Auth Hooks setup flags
+-- exactly this.
+grant usage on schema public to supabase_auth_admin;
 grant execute on function public.before_user_created_hook(jsonb) to supabase_auth_admin;
 grant execute on function public.is_email_domain_allowed(text) to supabase_auth_admin;
+revoke execute on function public.before_user_created_hook(jsonb) from authenticated, anon, public;
+revoke execute on function public.is_email_domain_allowed(text) from authenticated, anon, public;
 
 -- ---------------------------------------------------------------------------
 -- Magic-link rate limiting
