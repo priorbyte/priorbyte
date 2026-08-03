@@ -6,20 +6,35 @@ import { completeOnboarding, skipOnboarding, type OnboardingState } from './acti
 
 const INITIAL: OnboardingState = { status: 'idle' };
 
-const SUBJECTS = [
-  'Calculus',
-  'Linear Algebra',
-  'Statistics',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Computer Science',
-  'Data Structures',
-  'Algorithms',
-  'Economics',
-  'Machine Learning',
-  'Electronics',
-] as const;
+/**
+ * Priorbyte is "the operating system for every student's mind," not a STEM
+ * tutor — the list has to reflect that, with an escape hatch for anything
+ * still missing.
+ */
+const SUBJECT_GROUPS: Record<string, readonly string[]> = {
+  'Math & Statistics': ['Calculus', 'Linear Algebra', 'Statistics', 'Discrete Math'],
+  'Computer Science': [
+    'Computer Science',
+    'Data Structures',
+    'Algorithms',
+    'Machine Learning',
+    'Web Development',
+    'Databases',
+  ],
+  'Natural Sciences': ['Physics', 'Chemistry', 'Biology', 'Earth Science'],
+  Engineering: ['Electronics', 'Mechanical Engineering', 'Civil Engineering'],
+  'Business & Economics': ['Economics', 'Accounting', 'Finance', 'Marketing'],
+  'Humanities & Social Sciences': [
+    'History',
+    'Philosophy',
+    'Psychology',
+    'Political Science',
+    'Sociology',
+  ],
+  'Languages & Writing': ['English & Literature', 'Foreign Languages', 'Writing & Composition'],
+  'Health & Medicine': ['Biology (Pre-Med)', 'Anatomy & Physiology', 'Nursing'],
+  Law: ['Law & Legal Studies'],
+} as const;
 
 const STEPS = ['Goal', 'Extension', 'Subjects', 'Diagnostic'] as const;
 
@@ -61,12 +76,24 @@ function FinishButton() {
 export function OnboardingWizard({ displayName }: { displayName: string }) {
   const [step, setStep] = useState(0);
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [customSubject, setCustomSubject] = useState('');
   const [state, formAction] = useFormState(completeOnboarding, INITIAL);
+
+  const allListedSubjects = Object.values(SUBJECT_GROUPS).flat();
 
   const toggleSubject = (subject: string) =>
     setSubjects((prev) =>
       prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject],
     );
+
+  const addCustomSubject = () => {
+    const trimmed = customSubject.trim();
+    if (!trimmed || subjects.includes(trimmed)) return;
+    setSubjects((prev) => [...prev, trimmed]);
+    setCustomSubject('');
+  };
+
+  const customSubjects = subjects.filter((s) => !allListedSubjects.includes(s));
 
   const isLast = step === STEPS.length - 1;
 
@@ -124,25 +151,76 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
           <div className="space-y-4">
             <h1 className="text-3xl">What are you studying?</h1>
             <p className="text-silver">Pick any that apply. This seeds your knowledge graph.</p>
-            <div className="flex flex-wrap gap-2">
-              {SUBJECTS.map((subject) => {
-                const active = subjects.includes(subject);
-                return (
-                  <button
-                    key={subject}
-                    type="button"
-                    onClick={() => toggleSubject(subject)}
-                    aria-pressed={active}
-                    className={`rounded-full border px-4 py-2 text-sm transition ${
-                      active
-                        ? 'border-cyan bg-cyan/10 text-cyan'
-                        : 'border-line text-silver hover:border-cyan/40'
-                    }`}
-                  >
-                    {subject}
-                  </button>
-                );
-              })}
+
+            <div className="max-h-72 space-y-4 overflow-y-auto pr-2">
+              {Object.entries(SUBJECT_GROUPS).map(([group, subjectsInGroup]) => (
+                <div key={group}>
+                  <p className="pb-label mb-2">{group}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {subjectsInGroup.map((subject) => {
+                      const active = subjects.includes(subject);
+                      return (
+                        <button
+                          key={subject}
+                          type="button"
+                          onClick={() => toggleSubject(subject)}
+                          aria-pressed={active}
+                          className={`rounded-full border px-4 py-2 text-sm transition ${
+                            active
+                              ? 'border-cyan bg-cyan/10 text-cyan'
+                              : 'border-line text-silver hover:border-cyan/40'
+                          }`}
+                        >
+                          {subject}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {customSubjects.length > 0 && (
+                <div>
+                  <p className="pb-label mb-2">Added by you</p>
+                  <div className="flex flex-wrap gap-2">
+                    {customSubjects.map((subject) => (
+                      <button
+                        key={subject}
+                        type="button"
+                        onClick={() => toggleSubject(subject)}
+                        className="rounded-full border border-cyan bg-cyan/10 px-4 py-2 text-sm text-cyan transition"
+                      >
+                        {subject} ×
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 border-t border-line pt-4">
+              <input
+                type="text"
+                value={customSubject}
+                onChange={(e) => setCustomSubject(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomSubject();
+                  }
+                }}
+                maxLength={100}
+                placeholder="Not listed? Type your own — e.g. Music Theory"
+                className="flex-1 rounded-lg border border-line bg-background px-4 py-2 text-sm text-white outline-none transition placeholder:text-muted focus:border-cyan/60"
+              />
+              <button
+                type="button"
+                onClick={addCustomSubject}
+                disabled={!customSubject.trim()}
+                className="rounded-lg border border-line px-4 py-2 text-sm text-silver transition hover:border-cyan/40 disabled:opacity-40"
+              >
+                Add
+              </button>
             </div>
           </div>
         )}
