@@ -1,11 +1,35 @@
 {
   "name": "@priorbyte/extension",
+  "displayName": "Priorbyte Capture",
   "version": "0.1.0",
   "private": true,
-  "description": "Plasmo Chrome extension — passive learning-event capture. Scaffolded in step 4.",
+  "description": "Priorbyte passive learning-event capture — Chrome extension.",
   "scripts": {
-    "typecheck": "echo \"[extension] scaffolded in step 4\"",
-    "lint": "echo \"[extension] scaffolded in step 4\"",
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "clean": "rimraf .turbo build .plasmo"
+  },
+  "dependencies": {
+    "@plasmohq/storage": "^1.13.0",
+    "@priorbyte/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.111.0",
+    "plasmo": "^0.90.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.7.3"
+  },
+  "manifest": {
+    "name": "Priorbyte Capture",
+    "permissions": ["storage", "activeTab", "scripting", "identity"],
+    "host_permissions": ["https://*/*"]
   }
 }

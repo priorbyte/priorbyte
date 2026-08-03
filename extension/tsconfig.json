@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "~*": ["./src/*"],
+      "@priorbyte/shared": ["../shared/src/index.ts"],
+      "@priorbyte/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": [".plasmo/index.d.ts", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "build", ".plasmo"]
+}
