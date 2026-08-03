@@ -45,7 +45,7 @@ export default function HomePage() {
             href="/login"
             className="rounded-lg bg-cyan px-6 py-3 font-display font-bold text-background transition hover:shadow-glow"
           >
-            Get early access
+            Start for free
           </Link>
           <Link
             href="#loop"
