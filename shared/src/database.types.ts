@@ -184,6 +184,12 @@ export type ChatSharingConsentRow = {
   updated_at: string;
 }
 
+export type AllowedEmailDomainRow = {
+  domain: string;
+  added_by: string | null;
+  created_at: string;
+};
+
 export type AiUsageRow = {
   id: string;
   user_id: string;
@@ -223,6 +229,7 @@ export type Database = {
       chat_history: TableShape<ChatHistoryRow, 'user_id' | 'conversation_id' | 'role' | 'content'>;
       chat_sharing_consent: TableShape<ChatSharingConsentRow, 'user_id' | 'course_id' | 'level'>;
       ai_usage: TableShape<AiUsageRow, 'user_id' | 'feature'>;
+      allowed_email_domains: TableShape<AllowedEmailDomainRow, 'domain'>;
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -248,6 +255,18 @@ export type Database = {
       ai_queries_remaining: {
         Args: Record<PropertyKey, never>;
         Returns: number | null;
+      };
+      request_magic_link_allowed: {
+        Args: {
+          target_email: string;
+          max_attempts?: number;
+          window_minutes?: number;
+        };
+        Returns: boolean;
+      };
+      is_email_domain_allowed: {
+        Args: { candidate_email: string };
+        Returns: boolean;
       };
       topic_prerequisites: {
         Args: { target_topic_id: string; max_depth?: number };

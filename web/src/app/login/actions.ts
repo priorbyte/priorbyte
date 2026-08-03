@@ -29,6 +29,27 @@ export async function sendMagicLink(
   callback.searchParams.set('next', next.startsWith('/') ? next : '/dashboard');
 
   const supabase = createClient();
+
+  // App-level rate limit, independent of Supabase's own built-in Auth rate
+  // limits — defense in depth, and it lets us give a clear error message
+  // instead of a generic one from GoTrue.
+  const { data: allowed, error: rateLimitError } = await supabase.rpc(
+    'request_magic_link_allowed',
+    { target_email: parsed.data.email },
+  );
+
+  if (rateLimitError) {
+    return { status: 'error', message: 'Could not process that request. Try again shortly.' };
+  }
+
+  if (!allowed) {
+    return {
+      status: 'error',
+      message: 'Too many sign-in attempts for this email. Wait a few minutes and try again.',
+      email: parsed.data.email,
+    };
+  }
+
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
