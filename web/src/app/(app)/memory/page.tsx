@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import type { LearningEventRow, MatchedLearningEvent } from '@priorbyte/shared/database';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/auth';
+import { backfillPendingEmbeddings } from '@/lib/embeddings';
 import { embedQuery, isVoyageConfigured, toPgVectorLiteral } from '@/lib/voyage';
+import { CaptureForm } from './capture-form';
 
 export const metadata: Metadata = { title: 'Ghost Memory' };
 
@@ -31,6 +33,12 @@ export default async function MemoryPage({
 
   const query = (searchParams.q ?? '').trim().slice(0, MAX_QUERY_LENGTH);
   const semanticAvailable = isVoyageConfigured();
+
+  // Stand-in for the Section 9 Edge Function: embed anything captured since
+  // the last visit before searching, so a fresh capture is findable right away.
+  if (semanticAvailable) {
+    await backfillPendingEmbeddings(supabase, profile.id);
+  }
 
   let results: ResultRow[] = [];
   let usedSemanticSearch = false;
@@ -90,6 +98,8 @@ export default async function MemoryPage({
             : 'Keyword search for now. Semantic search (finding events by meaning, not exact wording) turns on automatically once an embedding provider is configured.'}
         </p>
       </div>
+
+      <CaptureForm />
 
       <form method="get" className="flex gap-2">
         <input
