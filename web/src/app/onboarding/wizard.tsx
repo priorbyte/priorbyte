@@ -6,6 +6,8 @@ import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   ONBOARDING_DIAGNOSTIC_QUESTIONS,
   SELF_SERVICE_ROLES,
+  SUBJECT_GROUPS,
+  YEAR_LEVEL_LABELS,
   YEAR_LEVELS,
 } from '@priorbyte/shared/constants';
 import { createClient } from '@/lib/supabase/client';
@@ -13,45 +15,6 @@ import { GitHubConnect } from './github-connect';
 import { completeOnboarding, skipOnboarding, type OnboardingState } from './actions';
 
 const INITIAL: OnboardingState = { status: 'idle' };
-
-/**
- * Priorbyte is "the operating system for every student's mind," not a STEM
- * tutor — the list has to reflect that, with an escape hatch for anything
- * still missing.
- */
-const SUBJECT_GROUPS: Record<string, readonly string[]> = {
-  'Math & Statistics': ['Calculus', 'Linear Algebra', 'Statistics', 'Discrete Math'],
-  'Computer Science': [
-    'Computer Science',
-    'Data Structures',
-    'Algorithms',
-    'Machine Learning',
-    'Web Development',
-    'Databases',
-  ],
-  'Natural Sciences': ['Physics', 'Chemistry', 'Biology', 'Earth Science'],
-  Engineering: ['Electronics', 'Mechanical Engineering', 'Civil Engineering'],
-  'Business & Economics': ['Economics', 'Accounting', 'Finance', 'Marketing'],
-  'Humanities & Social Sciences': [
-    'History',
-    'Philosophy',
-    'Psychology',
-    'Political Science',
-    'Sociology',
-  ],
-  'Languages & Writing': ['English & Literature', 'Foreign Languages', 'Writing & Composition'],
-  'Health & Medicine': ['Biology (Pre-Med)', 'Anatomy & Physiology', 'Nursing'],
-  Law: ['Law & Legal Studies'],
-} as const;
-
-const YEAR_LEVEL_LABELS: Record<(typeof YEAR_LEVELS)[number], string> = {
-  freshman: 'Freshman',
-  sophomore: 'Sophomore',
-  junior: 'Junior',
-  senior: 'Senior',
-  graduate: 'Graduate',
-  other: 'Other',
-};
 
 const LANGUAGES = [
   ['en', 'English'],

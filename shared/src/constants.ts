@@ -60,6 +60,46 @@ export const YEAR_LEVELS = [
 ] as const;
 export type YearLevel = (typeof YEAR_LEVELS)[number];
 
+export const YEAR_LEVEL_LABELS: Record<YearLevel, string> = {
+  freshman: 'Freshman',
+  sophomore: 'Sophomore',
+  junior: 'Junior',
+  senior: 'Senior',
+  graduate: 'Graduate',
+  other: 'Other',
+};
+
+/**
+ * Priorbyte is "the operating system for every student's mind," not a STEM
+ * tutor — the list has to reflect that, with an escape hatch for anything
+ * still missing. Shared between onboarding and the Settings profile editor
+ * so the two never drift apart.
+ */
+export const SUBJECT_GROUPS: Record<string, readonly string[]> = {
+  'Math & Statistics': ['Calculus', 'Linear Algebra', 'Statistics', 'Discrete Math'],
+  'Computer Science': [
+    'Computer Science',
+    'Data Structures',
+    'Algorithms',
+    'Machine Learning',
+    'Web Development',
+    'Databases',
+  ],
+  'Natural Sciences': ['Physics', 'Chemistry', 'Biology', 'Earth Science'],
+  Engineering: ['Electronics', 'Mechanical Engineering', 'Civil Engineering'],
+  'Business & Economics': ['Economics', 'Accounting', 'Finance', 'Marketing'],
+  'Humanities & Social Sciences': [
+    'History',
+    'Philosophy',
+    'Psychology',
+    'Political Science',
+    'Sociology',
+  ],
+  'Languages & Writing': ['English & Literature', 'Foreign Languages', 'Writing & Composition'],
+  'Health & Medicine': ['Biology (Pre-Med)', 'Anatomy & Physiology', 'Nursing'],
+  Law: ['Law & Legal Studies'],
+} as const;
+
 /**
  * Roles a student may declare for themselves at signup. `admin` is
  * deliberately excluded — it is granted only by an existing admin, never
