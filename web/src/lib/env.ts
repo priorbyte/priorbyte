@@ -13,7 +13,10 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  ANTHROPIC_API_KEY: z.string().min(1),
+  // Google Gemini powers the AI Tutor and Learning Tools — chosen over
+  // Anthropic for its free tier. Voyage stays separate; it only does
+  // embeddings, unrelated to which model answers a tutor question.
+  GEMINI_API_KEY: z.string().min(1),
   VOYAGE_API_KEY: z.string().min(1),
 });
 
