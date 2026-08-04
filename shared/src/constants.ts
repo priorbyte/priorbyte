@@ -50,21 +50,14 @@ export const TIER_LIMITS: Record<
 export const EMBEDDING_DIMENSIONS = 1024;
 
 /** Academic year/semester level, self-reported during onboarding. */
-export const YEAR_LEVELS = [
-  'freshman',
-  'sophomore',
-  'junior',
-  'senior',
-  'graduate',
-  'other',
-] as const;
+export const YEAR_LEVELS = ['year_1', 'year_2', 'year_3', 'year_4', 'graduate', 'other'] as const;
 export type YearLevel = (typeof YEAR_LEVELS)[number];
 
 export const YEAR_LEVEL_LABELS: Record<YearLevel, string> = {
-  freshman: 'Freshman',
-  sophomore: 'Sophomore',
-  junior: 'Junior',
-  senior: 'Senior',
+  year_1: '1st Year',
+  year_2: '2nd Year',
+  year_3: '3rd Year',
+  year_4: '4th Year',
   graduate: 'Graduate',
   other: 'Other',
 };
