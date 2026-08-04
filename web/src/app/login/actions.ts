@@ -18,15 +18,27 @@ export async function sendMagicLink(
     return { status: 'error', message: 'Supabase is not configured yet on this deployment.' };
   }
 
-  const parsed = magicLinkSchema.safeParse({ email: formData.get('email') });
+  const parsed = magicLinkSchema.safeParse({
+    email: formData.get('email'),
+    username: formData.get('username'),
+  });
   if (!parsed.success) {
-    return { status: 'error', message: 'Enter a valid email address.' };
+    return {
+      status: 'error',
+      message: 'Enter a valid email and a username (3-30 letters, numbers, or underscores).',
+    };
   }
 
   const next = String(formData.get('next') ?? '/dashboard');
   const callback = new URL('/auth/callback', getSiteUrl());
   // Only relative paths — an absolute `next` would make this an open redirect.
   callback.searchParams.set('next', next.startsWith('/') ? next : '/dashboard');
+  // Carried through so a brand-new account can claim it on first sign-in.
+  // Deliberately NOT availability-checked here: a returning user typing
+  // their own existing username would otherwise get blocked from signing
+  // in at all, since we can't tell new-vs-returning before the link is
+  // clicked. The callback only claims it if the profile has none yet.
+  callback.searchParams.set('username', parsed.data.username);
 
   const supabase = createClient();
 

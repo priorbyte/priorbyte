@@ -74,9 +74,15 @@ export const onboardingSchema = z.object({
 });
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 
-/** Magic-link sign-in — the only auth entry point. */
+/**
+ * Magic-link sign-in — the only auth entry point. Username is always
+ * collected on the form (even for returning users, who already have one);
+ * the callback route only claims it onto a profile that doesn't have one
+ * yet, so it's a no-op for anyone signing back in.
+ */
 export const magicLinkSchema = z.object({
   email: z.string().email().max(320),
+  username: usernameSchema,
 });
 export type MagicLinkInput = z.infer<typeof magicLinkSchema>;
 

@@ -46,6 +46,13 @@ export async function updateProfileDetails(
     enrolledCourses: enrolledCourses.length ? enrolledCourses : undefined,
     subjects: subjects.length ? subjects : undefined,
     alternateEmail: str(formData.get('alternateEmail')),
+    timeZone: str(formData.get('timeZone')),
+    languagePreference: str(formData.get('languagePreference')),
+    notificationPreferences: {
+      email: formData.get('notif_email') !== null,
+      productUpdates: formData.get('notif_productUpdates') !== null,
+      weeklyDigest: formData.get('notif_weeklyDigest') !== null,
+    },
   });
 
   if (!parsed.success) {
@@ -70,6 +77,9 @@ export async function updateProfileDetails(
       enrolled_courses: d.enrolledCourses ?? [],
       subjects: d.subjects ?? [],
       alternate_email: d.alternateEmail ?? null,
+      time_zone: d.timeZone ?? 'UTC',
+      language_preference: d.languagePreference ?? 'en',
+      ...(d.notificationPreferences ? { notification_preferences: d.notificationPreferences } : {}),
     })
     .eq('id', user.id);
 

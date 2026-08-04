@@ -2,12 +2,45 @@
 
 import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { SUBJECT_GROUPS, YEAR_LEVEL_LABELS, YEAR_LEVELS } from '@priorbyte/shared/constants';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  SUBJECT_GROUPS,
+  YEAR_LEVEL_LABELS,
+  YEAR_LEVELS,
+} from '@priorbyte/shared/constants';
 import type { ProfileRow } from '@priorbyte/shared/database';
 import { createClient } from '@/lib/supabase/client';
 import { updateProfileDetails, type ProfileFormState } from './profile-actions';
 
 const INITIAL: ProfileFormState = { status: 'idle' };
+
+const LANGUAGES = [
+  ['en', 'English'],
+  ['es', 'Spanish'],
+  ['fr', 'French'],
+  ['de', 'German'],
+  ['hi', 'Hindi'],
+  ['zh', 'Chinese'],
+  ['ar', 'Arabic'],
+  ['pt', 'Portuguese'],
+  ['ru', 'Russian'],
+  ['ja', 'Japanese'],
+] as const;
+
+const COMMON_TIME_ZONES = [
+  'UTC',
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'Europe/London',
+  'Europe/Berlin',
+  'Asia/Kolkata',
+  'Asia/Dubai',
+  'Asia/Singapore',
+  'Asia/Tokyo',
+  'Australia/Sydney',
+] as const;
 
 function SaveButton() {
   const { pending } = useFormStatus();
@@ -426,6 +459,90 @@ export function ProfileForm({ profile, userId }: { profile: ProfileRow; userId: 
           >
             Add
           </button>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl text-white">Preferences</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="timeZone" className="pb-label mb-1 block">
+              Time zone
+            </label>
+            <select
+              id="timeZone"
+              name="timeZone"
+              defaultValue={profile.time_zone}
+              className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm text-white outline-none focus:border-cyan/60"
+            >
+              {!COMMON_TIME_ZONES.includes(profile.time_zone as never) && (
+                <option value={profile.time_zone}>{profile.time_zone}</option>
+              )}
+              {COMMON_TIME_ZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="languagePreference" className="pb-label mb-1 block">
+              Language
+            </label>
+            <select
+              id="languagePreference"
+              name="languagePreference"
+              defaultValue={profile.language_preference}
+              className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm text-white outline-none focus:border-cyan/60"
+            >
+              {LANGUAGES.map(([code, label]) => (
+                <option key={code} value={code}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <p className="pb-label mb-2">Notifications</p>
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 text-sm text-silver">
+              <input
+                type="checkbox"
+                name="notif_email"
+                defaultChecked={
+                  profile.notification_preferences?.email ?? DEFAULT_NOTIFICATION_PREFERENCES.email
+                }
+                className="accent-cyan"
+              />
+              Email me about important account activity
+            </label>
+            <label className="flex items-center gap-2 text-sm text-silver">
+              <input
+                type="checkbox"
+                name="notif_productUpdates"
+                defaultChecked={
+                  profile.notification_preferences?.productUpdates ??
+                  DEFAULT_NOTIFICATION_PREFERENCES.productUpdates
+                }
+                className="accent-cyan"
+              />
+              Product updates
+            </label>
+            <label className="flex items-center gap-2 text-sm text-silver">
+              <input
+                type="checkbox"
+                name="notif_weeklyDigest"
+                defaultChecked={
+                  profile.notification_preferences?.weeklyDigest ??
+                  DEFAULT_NOTIFICATION_PREFERENCES.weeklyDigest
+                }
+                className="accent-cyan"
+              />
+              Weekly progress digest
+            </label>
+          </div>
         </div>
       </section>
 
