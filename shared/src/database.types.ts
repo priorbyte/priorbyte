@@ -12,6 +12,7 @@
 
 import type {
   ChatSharingLevel,
+  DashboardPreferences,
   InoculationFormat,
   LearningEventType,
   NotificationPreferences,
@@ -60,6 +61,8 @@ export type ProfileRow = {
   time_zone: string;
   language_preference: string;
   notification_preferences: NotificationPreferences;
+  nickname: string | null;
+  dashboard_preferences: DashboardPreferences;
   created_at: string;
   updated_at: string;
 }

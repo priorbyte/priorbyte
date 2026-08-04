@@ -3,8 +3,40 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Every color a themeable component uses resolves through one of these
+   * CSS variables (RGB triplets, consumed by Tailwind as
+   * `rgb(var(--pb-x) / <alpha-value>)`), so switching [data-theme] or
+   * --pb-accent repaints the whole app without touching a single component.
+   * Dark is the default and always applies unless overridden below.
+   */
   :root {
     color-scheme: dark;
+    --pb-bg: 11 14 20; /* #0B0E14 */
+    --pb-surface: 17 22 34; /* #111622 */
+    --pb-surface-raised: 23 30 46; /* #171E2E */
+    --pb-line: 31 41 55; /* #1F2937 */
+    --pb-muted: 107 122 143; /* #6B7A8F */
+    --pb-silver: 176 190 197; /* #B0BEC5 — body text */
+    --pb-heading: 255 255 255; /* headings, on top of `white` itself */
+    --pb-accent: 0 229 255; /* #00E5FF — default Cognitive Blueprint cyan */
+  }
+
+  /*
+   * Attribute selector (not `:root[...]`) so this applies wherever
+   * data-theme="light" is set — the signed-in app shell sets it on a
+   * wrapper div per-user, not necessarily on <html>, since theme is a
+   * per-account preference that public marketing pages don't have.
+   */
+  [data-theme='light'] {
+    color-scheme: light;
+    --pb-bg: 250 250 252;
+    --pb-surface: 255 255 255;
+    --pb-surface-raised: 244 245 247;
+    --pb-line: 224 224 230;
+    --pb-muted: 100 105 115;
+    --pb-silver: 51 65 85;
+    --pb-heading: 17 24 39;
   }
 
   html,

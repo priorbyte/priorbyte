@@ -81,6 +81,88 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   weeklyDigest: true,
 };
 
+/** Dashboard widgets that actually exist and can be shown, hidden, or reordered. */
+export const DASHBOARD_WIDGETS = [
+  'streak',
+  'weekly_snapshot',
+  'weak_strong_topics',
+  'knowledge_map',
+  'mini_timeline',
+  'integration_status',
+] as const;
+export type DashboardWidget = (typeof DASHBOARD_WIDGETS)[number];
+
+/** Personal accent color. `teal`/`amber` elsewhere in the UI keep their own
+ * fixed semantic meaning (success/warning) regardless of this choice. */
+export const ACCENT_COLORS = ['cyan', 'teal', 'purple', 'amber'] as const;
+export type AccentColor = (typeof ACCENT_COLORS)[number];
+
+/** RGB triplets (space-separated, matching the CSS var convention in globals.css). */
+export const ACCENT_COLOR_VALUES: Record<AccentColor, string> = {
+  cyan: '0 229 255',
+  teal: '0 191 165',
+  purple: '168 85 247',
+  amber: '255 171 0',
+};
+
+export const THEME_MODES = ['dark', 'light'] as const;
+export type ThemeMode = (typeof THEME_MODES)[number];
+
+/** Seconds between auto-refreshes; 0 means off. */
+export const REFRESH_INTERVALS = [0, 30, 60, 300] as const;
+export type RefreshInterval = (typeof REFRESH_INTERVALS)[number];
+
+export interface DashboardPreferences {
+  theme: ThemeMode;
+  accentColor: AccentColor;
+  hiddenWidgets: DashboardWidget[];
+  widgetOrder: DashboardWidget[];
+  proBannerDismissed: boolean;
+  /** Empty = auto-pick the top 3 by tracked-topic count. */
+  knowledgeMapSubjects: string[];
+  refreshIntervalSeconds: RefreshInterval;
+}
+
+export const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
+  theme: 'dark',
+  accentColor: 'cyan',
+  hiddenWidgets: [],
+  widgetOrder: [...DASHBOARD_WIDGETS],
+  proBannerDismissed: false,
+  knowledgeMapSubjects: [],
+  refreshIntervalSeconds: 0,
+};
+
+/**
+ * Fills in defaults for anything missing from stored preferences (a fresh
+ * account, or a shape from before a new preference existed) and drops any
+ * widget id that no longer exists — the jsonb column is schemaless, so this
+ * boundary is what keeps a stale value from ever reaching a component.
+ */
+export function mergeDashboardPreferences(
+  stored: Partial<DashboardPreferences> | null | undefined,
+): DashboardPreferences {
+  const knownWidgets = new Set<string>(DASHBOARD_WIDGETS);
+  const widgetOrder = (stored?.widgetOrder ?? DEFAULT_DASHBOARD_PREFERENCES.widgetOrder).filter(
+    (w): w is DashboardWidget => knownWidgets.has(w),
+  );
+  for (const w of DASHBOARD_WIDGETS) {
+    if (!widgetOrder.includes(w)) widgetOrder.push(w);
+  }
+
+  return {
+    theme: stored?.theme ?? DEFAULT_DASHBOARD_PREFERENCES.theme,
+    accentColor: stored?.accentColor ?? DEFAULT_DASHBOARD_PREFERENCES.accentColor,
+    hiddenWidgets: (stored?.hiddenWidgets ?? []).filter((w): w is DashboardWidget =>
+      knownWidgets.has(w),
+    ),
+    widgetOrder,
+    proBannerDismissed: stored?.proBannerDismissed ?? false,
+    knowledgeMapSubjects: stored?.knowledgeMapSubjects ?? [],
+    refreshIntervalSeconds: stored?.refreshIntervalSeconds ?? 0,
+  };
+}
+
 /**
  * Single source of truth for the onboarding diagnostic questions, shared
  * between the wizard (renders them) and the server action (labels the

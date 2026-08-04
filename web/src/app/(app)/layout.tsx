@@ -1,3 +1,4 @@
+import { ACCENT_COLOR_VALUES, mergeDashboardPreferences } from '@priorbyte/shared/constants';
 import { AppNav } from '@/components/app-nav';
 import { SetupNotice } from '@/components/setup-notice';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
@@ -20,10 +21,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const profile = await requireProfile();
-  const displayName = profile.display_name?.split(' ')[0] ?? profile.email.split('@')[0] ?? 'you';
+  const displayName =
+    profile.nickname ?? profile.display_name?.split(' ')[0] ?? profile.email.split('@')[0] ?? 'you';
+  const prefs = mergeDashboardPreferences(profile.dashboard_preferences);
 
   return (
-    <div className="min-h-screen">
+    // Theme and accent are per-account, so they live here on the signed-in
+    // shell rather than the public root layout — CSS variables cascade to
+    // every descendant, which is what lets every existing `bg-background`,
+    // `text-cyan`, etc. across the app repaint without per-component changes.
+    <div
+      className="min-h-screen bg-background text-silver"
+      data-theme={prefs.theme}
+      style={{ '--pb-accent': ACCENT_COLOR_VALUES[prefs.accentColor] } as React.CSSProperties}
+    >
       <AppNav
         displayName={displayName}
         tier={profile.subscription_tier}

@@ -2,10 +2,14 @@
 
 import { z } from 'zod';
 import {
+  ACCENT_COLORS,
   CHAT_SHARING_LEVELS,
+  DASHBOARD_WIDGETS,
   LEARNING_EVENT_TYPES,
+  REFRESH_INTERVALS,
   SELF_SERVICE_ROLES,
   SUBSCRIPTION_TIERS,
+  THEME_MODES,
   TIMELINE_STAGES,
   USER_ROLES,
   YEAR_LEVELS,
@@ -88,6 +92,29 @@ export const chatSharingConsentSchema = z
     { message: 'Level "selected" requires at least one conversation id.', path: ['sharedConversationIds'] },
   );
 export type ChatSharingConsentInput = z.infer<typeof chatSharingConsentSchema>;
+
+export const dashboardWidgetSchema = z.enum(DASHBOARD_WIDGETS);
+export const accentColorSchema = z.enum(ACCENT_COLORS);
+export const themeModeSchema = z.enum(THEME_MODES);
+export const refreshIntervalSchema = z.union([
+  z.literal(REFRESH_INTERVALS[0]),
+  z.literal(REFRESH_INTERVALS[1]),
+  z.literal(REFRESH_INTERVALS[2]),
+  z.literal(REFRESH_INTERVALS[3]),
+]);
+
+export const dashboardPreferencesSchema = z.object({
+  theme: themeModeSchema,
+  accentColor: accentColorSchema,
+  hiddenWidgets: z.array(dashboardWidgetSchema).max(DASHBOARD_WIDGETS.length),
+  widgetOrder: z.array(dashboardWidgetSchema).max(DASHBOARD_WIDGETS.length),
+  proBannerDismissed: z.boolean(),
+  knowledgeMapSubjects: z.array(z.string().min(1).max(100)).max(3),
+  refreshIntervalSeconds: refreshIntervalSchema,
+});
+export type DashboardPreferencesInput = z.infer<typeof dashboardPreferencesSchema>;
+
+export const nicknameSchema = z.string().min(1).max(50);
 
 /** Ghost Memory vector search over the student's own past mistakes. */
 export const ghostMemoryQuerySchema = z.object({

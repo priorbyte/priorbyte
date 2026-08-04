@@ -1,25 +1,31 @@
 import type { Config } from 'tailwindcss';
-import { COLORS, SURFACES } from '@priorbyte/shared/brand';
+import { COLORS } from '@priorbyte/shared/brand';
 
 /**
- * Cognitive Blueprint theme. Colors come from /shared so the extension and
- * any future surface stay on the same palette.
+ * Cognitive Blueprint theme. Most tokens resolve through CSS variables
+ * (defined in globals.css) rather than static hex, so per-user theme and
+ * accent-color preferences repaint the whole app without per-component
+ * changes. `teal` and `amber` stay static — they carry fixed semantic
+ * meaning (success / warning) independent of the user's chosen accent.
  */
+const withAlpha = (cssVar: string) => `rgb(var(${cssVar}) / <alpha-value>)`;
+
 const config: Config = {
   darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        background: COLORS.background,
-        surface: SURFACES.surface,
-        'surface-raised': SURFACES.surfaceRaised,
-        line: SURFACES.line,
-        muted: SURFACES.muted,
-        cyan: { DEFAULT: COLORS.cyan },
+        background: withAlpha('--pb-bg'),
+        surface: withAlpha('--pb-surface'),
+        'surface-raised': withAlpha('--pb-surface-raised'),
+        line: withAlpha('--pb-line'),
+        muted: withAlpha('--pb-muted'),
+        silver: { DEFAULT: withAlpha('--pb-silver') },
+        white: withAlpha('--pb-heading'),
+        cyan: { DEFAULT: withAlpha('--pb-accent') },
         teal: { DEFAULT: COLORS.teal },
         amber: { DEFAULT: COLORS.amber },
-        silver: { DEFAULT: COLORS.silver },
       },
       fontFamily: {
         display: ['var(--font-sora)', 'system-ui', 'sans-serif'],
@@ -27,6 +33,8 @@ const config: Config = {
         mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
+        // Static, not CSS-var-driven: an accent-reactive glow is a nice-to-have,
+        // not worth the added complexity of a var-based box-shadow color.
         glow: `0 0 24px -6px ${COLORS.cyan}66`,
         'glow-teal': `0 0 24px -6px ${COLORS.teal}66`,
       },

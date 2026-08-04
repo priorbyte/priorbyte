@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { TIER_LIMITS } from '@priorbyte/shared/constants';
+import { TIER_LIMITS, mergeDashboardPreferences, type DashboardWidget } from '@priorbyte/shared/constants';
 import type { KnowledgeGraphRow, LearningEventRow, TopicMasteryRow } from '@priorbyte/shared/database';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/auth';
+import { AutoRefresh } from '@/components/auto-refresh';
 import { computeConsistency, computeStreak, getGreeting, toActiveDateSet } from '@/lib/dashboard';
 
 export const metadata: Metadata = { title: 'Dashboard' };
@@ -28,9 +29,29 @@ function confidenceColor(confidence: number): string {
   return 'bg-amber';
 }
 
+function topicsSafe(topics: KnowledgeGraphRow[] | null): KnowledgeGraphRow[] {
+  return topics ?? [];
+}
+
+function topicsWithStage(
+  masteryRows: TopicMasteryRow[] | null,
+  topicById: Map<string, KnowledgeGraphRow>,
+  stage: TopicMasteryRow['stage'],
+): { mastery: TopicMasteryRow; topic: KnowledgeGraphRow }[] {
+  return (masteryRows ?? [])
+    .filter((m) => m.stage === stage)
+    .map((mastery) => {
+      const topic = topicById.get(mastery.topic_id);
+      return topic ? { mastery, topic } : null;
+    })
+    .filter((x): x is { mastery: TopicMasteryRow; topic: KnowledgeGraphRow } => x !== null)
+    .sort((a, b) => a.mastery.confidence - b.mastery.confidence);
+}
+
 export default async function DashboardPage() {
   const profile = await requireProfile();
   const supabase = createClient();
+  const prefs = mergeDashboardPreferences(profile.dashboard_preferences);
 
   const sevenDaysAgo = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
   const thirtyFiveDaysAgo = new Date(Date.now() - THIRTY_FIVE_DAYS_MS).toISOString();
@@ -127,14 +148,15 @@ export default async function DashboardPage() {
     existing.totalConfidence += m.confidence;
     subjectStats.set(topic.subject, existing);
   }
-  const topSubjects = [...subjectStats.entries()]
-    .map(([subject, { count, totalConfidence }]) => ({
-      subject,
-      count,
-      avgConfidence: totalConfidence / count,
-    }))
-    .sort((a, b) => b.count - a.count || b.avgConfidence - a.avgConfidence)
-    .slice(0, 3);
+  let topSubjects = [...subjectStats.entries()].map(([subject, { count, totalConfidence }]) => ({
+    subject,
+    count,
+    avgConfidence: totalConfidence / count,
+  }));
+  topSubjects =
+    prefs.knowledgeMapSubjects.length > 0
+      ? topSubjects.filter((s) => prefs.knowledgeMapSubjects.includes(s.subject))
+      : topSubjects.sort((a, b) => b.count - a.count || b.avgConfidence - a.avgConfidence).slice(0, 3);
 
   // --- weekly snapshot ------------------------------------------------------
   const topicsLearnedThisWeek = new Set((weeklyEntries ?? []).map((e) => e.topic_id)).size;
@@ -142,7 +164,10 @@ export default async function DashboardPage() {
   const limit = TIER_LIMITS[profile.subscription_tier].aiQueriesPerMonth;
   const greeting = getGreeting(profile.time_zone);
   const firstName =
-    profile.display_name?.split(' ')[0] ?? profile.username ?? profile.email.split('@')[0];
+    profile.nickname ??
+    profile.display_name?.split(' ')[0] ??
+    profile.username ??
+    profile.email.split('@')[0];
 
   const topStats = [
     { label: 'Current streak', value: `${streak}d` },
@@ -150,16 +175,8 @@ export default async function DashboardPage() {
     { label: 'AI queries left', value: limit === null ? '∞' : (remaining ?? limit) },
   ];
 
-  return (
-    <div className="space-y-10">
-      <div>
-        <p className="pb-label">Dashboard</p>
-        <h1 className="mt-2 text-4xl">
-          {greeting}, {firstName}.
-        </h1>
-        {profile.goal && <p className="mt-2 max-w-2xl text-silver">{profile.goal}</p>}
-      </div>
-
+  const widgets: Record<DashboardWidget, React.ReactNode> = {
+    streak: (
       <div className="grid gap-4 sm:grid-cols-3">
         {topStats.map(({ label, value }) => (
           <div key={label} className="pb-panel">
@@ -168,18 +185,8 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
-
-      {(eventCount ?? 0) === 0 && (
-        <div className="pb-panel border-cyan/30">
-          <h2 className="text-2xl">Nothing captured yet</h2>
-          <p className="mt-2 max-w-2xl text-silver">
-            Priorbyte has no signal to model until it sees you work. Install the capture extension
-            and study normally — the timeline fills itself in.
-          </p>
-        </div>
-      )}
-
-      {/* Integration status */}
+    ),
+    integration_status: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="pb-panel flex items-center justify-between">
           <div>
@@ -198,8 +205,8 @@ export default async function DashboardPage() {
           <span className={`h-2.5 w-2.5 rounded-full ${githubConnected ? 'bg-teal' : 'bg-line'}`} />
         </div>
       </div>
-
-      {/* Weekly progress snapshot */}
+    ),
+    weekly_snapshot: (
       <section className="space-y-4">
         <h2 className="pb-label">This week</h2>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -217,8 +224,8 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
-
-      {/* Weak / strong topics */}
+    ),
+    weak_strong_topics: (
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="pb-panel">
           <p className="pb-label text-amber">Needs attention</p>
@@ -253,8 +260,8 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
-
-      {/* Knowledge map mini-view */}
+    ),
+    knowledge_map: (
       <section className="space-y-3">
         <h2 className="pb-label">Top subjects</h2>
         {topSubjects.length === 0 ? (
@@ -280,8 +287,8 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
-
-      {/* Mini Ghost Timeline */}
+    ),
+    mini_timeline: (
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="pb-label">Recent activity</h2>
@@ -294,10 +301,7 @@ export default async function DashboardPage() {
         ) : (
           <ul className="space-y-2">
             {(recentEvents ?? []).map((event) => (
-              <li
-                key={event.id}
-                className="pb-panel flex items-center justify-between gap-4 py-3"
-              >
+              <li key={event.id} className="pb-panel flex items-center justify-between gap-4 py-3">
                 <div className="min-w-0">
                   <p className="font-mono text-[10px] uppercase tracking-wider text-cyan">
                     {event.type}
@@ -312,8 +316,38 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
+    ),
+  };
 
-      {profile.subscription_tier === 'free' && (
+  const visibleWidgets = prefs.widgetOrder.filter((w) => !prefs.hiddenWidgets.includes(w));
+
+  return (
+    <div className="space-y-10">
+      <AutoRefresh intervalSeconds={prefs.refreshIntervalSeconds} />
+
+      <div>
+        <p className="pb-label">Dashboard</p>
+        <h1 className="mt-2 text-4xl">
+          {greeting}, {firstName}.
+        </h1>
+        {profile.goal && <p className="mt-2 max-w-2xl text-silver">{profile.goal}</p>}
+      </div>
+
+      {(eventCount ?? 0) === 0 && (
+        <div className="pb-panel border-cyan/30">
+          <h2 className="text-2xl">Nothing captured yet</h2>
+          <p className="mt-2 max-w-2xl text-silver">
+            Priorbyte has no signal to model until it sees you work. Install the capture extension
+            and study normally — the timeline fills itself in.
+          </p>
+        </div>
+      )}
+
+      {visibleWidgets.map((w) => (
+        <div key={w}>{widgets[w]}</div>
+      ))}
+
+      {!prefs.proBannerDismissed && profile.subscription_tier === 'free' && (
         <div className="pb-panel flex items-center justify-between gap-4 border-cyan/30">
           <div>
             <p className="text-white">You&apos;re on the Free plan</p>
@@ -343,23 +377,4 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
-}
-
-function topicsSafe(topics: KnowledgeGraphRow[] | null): KnowledgeGraphRow[] {
-  return topics ?? [];
-}
-
-function topicsWithStage(
-  masteryRows: TopicMasteryRow[] | null,
-  topicById: Map<string, KnowledgeGraphRow>,
-  stage: TopicMasteryRow['stage'],
-): { mastery: TopicMasteryRow; topic: KnowledgeGraphRow }[] {
-  return (masteryRows ?? [])
-    .filter((m) => m.stage === stage)
-    .map((mastery) => {
-      const topic = topicById.get(mastery.topic_id);
-      return topic ? { mastery, topic } : null;
-    })
-    .filter((x): x is { mastery: TopicMasteryRow; topic: KnowledgeGraphRow } => x !== null)
-    .sort((a, b) => a.mastery.confidence - b.mastery.confidence);
 }

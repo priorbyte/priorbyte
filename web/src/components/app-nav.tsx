@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/timeline', label: 'Ghost Timeline' },
   { href: '/memory', label: 'Ghost Memory' },
+  { href: '/settings', label: 'Settings' },
 ] as const;
 
 export function AppNav({
