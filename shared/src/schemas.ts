@@ -4,9 +4,11 @@ import { z } from 'zod';
 import {
   CHAT_SHARING_LEVELS,
   LEARNING_EVENT_TYPES,
+  SELF_SERVICE_ROLES,
   SUBSCRIPTION_TIERS,
   TIMELINE_STAGES,
   USER_ROLES,
+  YEAR_LEVELS,
 } from './constants';
 
 export const uuidSchema = z.string().uuid();
@@ -29,10 +31,38 @@ export const captureLearningEventSchema = z.object({
 export type CaptureLearningEventInput = z.infer<typeof captureLearningEventSchema>;
 
 /** Onboarding wizard — every field is optional because every step is skippable. */
+export const selfServiceRoleSchema = z.enum(SELF_SERVICE_ROLES);
+export const yearLevelSchema = z.enum(YEAR_LEVELS);
+
+/** IANA username format — matches the profiles_username_format CHECK constraint. */
+export const usernameSchema = z.string().regex(/^[a-zA-Z0-9_]{3,30}$/, {
+  message: 'Usernames are 3-30 characters: letters, numbers, and underscores only.',
+});
+
+export const notificationPreferencesSchema = z.object({
+  email: z.boolean(),
+  productUpdates: z.boolean(),
+  weeklyDigest: z.boolean(),
+});
+
 export const onboardingSchema = z.object({
   goal: z.string().max(500).optional(),
+  fullName: z.string().min(1).max(200).optional(),
+  username: usernameSchema.optional(),
   avatarUrl: z.string().url().optional(),
+  dateOfBirth: z.string().date().optional(),
+  phoneNumber: z.string().max(30).optional(),
+  role: selfServiceRoleSchema.optional(),
+  universityName: z.string().max(200).optional(),
+  rollNumber: z.string().max(100).optional(),
+  department: z.string().max(200).optional(),
+  yearLevel: yearLevelSchema.optional(),
+  enrolledCourses: z.array(z.string().min(1).max(100)).max(30).optional(),
   subjects: z.array(z.string().min(1).max(100)).max(20).optional(),
+  alternateEmail: z.string().email().max(320).optional(),
+  timeZone: z.string().max(100).optional(),
+  languagePreference: z.string().max(50).optional(),
+  notificationPreferences: notificationPreferencesSchema.optional(),
   diagnosticAnswers: z
     .array(z.object({ questionId: z.string(), answer: z.string().max(2000) }))
     .max(5)

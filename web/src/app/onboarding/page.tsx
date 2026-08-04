@@ -42,7 +42,7 @@ export default async function OnboardingPage() {
         aria-hidden
         className="absolute inset-0 -z-10 bg-blueprint bg-blueprint-grid [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]"
       />
-      <OnboardingWizard displayName={displayName} />
+      <OnboardingWizard displayName={displayName} userId={user.id} />
     </main>
   );
 }

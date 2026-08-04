@@ -14,10 +14,12 @@ import type {
   ChatSharingLevel,
   InoculationFormat,
   LearningEventType,
+  NotificationPreferences,
   PredictionOutcome,
   SubscriptionTier,
   TimelineStage,
   UserRole,
+  YearLevel,
 } from './constants';
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
@@ -46,6 +48,18 @@ export type ProfileRow = {
   goal: string | null;
   subjects: string[];
   onboarding_completed_at: string | null;
+  username: string | null;
+  date_of_birth: string | null;
+  phone_number: string | null;
+  university_name: string | null;
+  roll_number: string | null;
+  department: string | null;
+  year_level: YearLevel | null;
+  enrolled_courses: string[];
+  alternate_email: string | null;
+  time_zone: string;
+  language_preference: string;
+  notification_preferences: NotificationPreferences;
   created_at: string;
   updated_at: string;
 }
@@ -268,6 +282,10 @@ export type Database = {
         Args: { candidate_email: string };
         Returns: boolean;
       };
+      is_username_available: {
+        Args: { candidate: string };
+        Returns: boolean;
+      };
       topic_prerequisites: {
         Args: { target_topic_id: string; max_depth?: number };
         Returns: { id: string; slug: string; title: string; depth: number }[];
@@ -281,6 +299,7 @@ export type Database = {
       learning_event_type: LearningEventType;
       inoculation_format: InoculationFormat;
       prediction_outcome: PredictionOutcome;
+      year_level: YearLevel;
     };
     CompositeTypes: { [_ in never]: never };
   };

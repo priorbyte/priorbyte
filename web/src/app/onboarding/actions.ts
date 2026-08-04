@@ -2,13 +2,21 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  ONBOARDING_DIAGNOSTIC_QUESTIONS,
+} from '@priorbyte/shared/constants';
 import { onboardingSchema } from '@priorbyte/shared/schemas';
 import { createClient } from '@/lib/supabase/server';
-import { DIAGNOSTIC } from './diagnostic';
 
 export interface OnboardingState {
   status: 'idle' | 'error';
   message?: string;
+}
+
+function str(value: FormDataEntryValue | null): string | undefined {
+  const trimmed = String(value ?? '').trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 /**
@@ -27,34 +35,79 @@ export async function completeOnboarding(
 
   if (!user) redirect('/login');
 
-  const rawSubjects = formData.getAll('subjects').map(String).filter(Boolean);
-  const rawGoal = String(formData.get('goal') ?? '').trim();
+  const subjects = formData.getAll('subjects').map(String).filter(Boolean);
+  const enrolledCourses = formData.getAll('enrolledCourses').map(String).filter(Boolean);
 
-  const rawDiagnosticAnswers = DIAGNOSTIC.map(({ id }) => ({
-    questionId: id,
-    answer: String(formData.get(`diagnostic_${id}`) ?? '').trim(),
-  })).filter((a) => a.answer.length > 0);
+  const diagnosticAnswers = ONBOARDING_DIAGNOSTIC_QUESTIONS.reduce<
+    { questionId: string; answer: string }[]
+  >((acc, { id }) => {
+    const answer = str(formData.get(`diagnostic_${id}`));
+    if (answer) acc.push({ questionId: id, answer });
+    return acc;
+  }, []);
 
   const parsed = onboardingSchema.safeParse({
-    ...(rawGoal ? { goal: rawGoal } : {}),
-    ...(rawSubjects.length ? { subjects: rawSubjects } : {}),
-    ...(rawDiagnosticAnswers.length ? { diagnosticAnswers: rawDiagnosticAnswers } : {}),
+    goal: str(formData.get('goal')),
+    fullName: str(formData.get('fullName')),
+    username: str(formData.get('username')),
+    avatarUrl: str(formData.get('avatarUrl')),
+    dateOfBirth: str(formData.get('dateOfBirth')),
+    phoneNumber: str(formData.get('phoneNumber')),
+    role: str(formData.get('role')),
+    universityName: str(formData.get('universityName')),
+    rollNumber: str(formData.get('rollNumber')),
+    department: str(formData.get('department')),
+    yearLevel: str(formData.get('yearLevel')),
+    enrolledCourses: enrolledCourses.length ? enrolledCourses : undefined,
+    subjects: subjects.length ? subjects : undefined,
+    alternateEmail: str(formData.get('alternateEmail')),
+    timeZone: str(formData.get('timeZone')),
+    languagePreference: str(formData.get('languagePreference')),
+    notificationPreferences: {
+      email: formData.get('notif_email') !== null,
+      productUpdates: formData.get('notif_productUpdates') !== null,
+      weeklyDigest: formData.get('notif_weeklyDigest') !== null,
+    },
+    diagnosticAnswers: diagnosticAnswers.length ? diagnosticAnswers : undefined,
   });
 
   if (!parsed.success) {
     return { status: 'error', message: 'Those answers were not valid. Try again or skip.' };
   }
 
+  const d = parsed.data;
+
   const { error } = await supabase
     .from('profiles')
     .update({
-      goal: parsed.data.goal ?? null,
-      subjects: parsed.data.subjects ?? [],
+      goal: d.goal ?? null,
+      display_name: d.fullName ?? null,
+      username: d.username ?? null,
+      avatar_url: d.avatarUrl ?? null,
+      date_of_birth: d.dateOfBirth ?? null,
+      phone_number: d.phoneNumber ?? null,
+      ...(d.role ? { role: d.role } : {}),
+      university_name: d.universityName ?? null,
+      roll_number: d.rollNumber ?? null,
+      department: d.department ?? null,
+      year_level: d.yearLevel ?? null,
+      enrolled_courses: d.enrolledCourses ?? [],
+      subjects: d.subjects ?? [],
+      alternate_email: d.alternateEmail ?? null,
+      time_zone: d.timeZone ?? 'UTC',
+      language_preference: d.languagePreference ?? 'en',
+      notification_preferences: d.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
       onboarding_completed_at: new Date().toISOString(),
     })
     .eq('id', user.id);
 
   if (error) {
+    // Unique violation on username is the one field-level conflict a student
+    // could hit between the availability check and submit (someone else took
+    // it in between) — surface that specifically rather than a raw DB error.
+    if (error.code === '23505') {
+      return { status: 'error', message: 'That username was just taken. Pick another.' };
+    }
     return { status: 'error', message: error.message };
   }
 
@@ -62,14 +115,15 @@ export async function completeOnboarding(
   // data — capturing them as learning_events means Ghost Memory has
   // something to search and the vulnerability model has a cold-start seed,
   // both before the extension ever records a single event.
-  if (parsed.data.diagnosticAnswers?.length) {
-    const questionById = new Map<string, string>(DIAGNOSTIC.map((d) => [d.id, d.question]));
-    const events = parsed.data.diagnosticAnswers.map(({ questionId, answer }) => ({
+  if (d.diagnosticAnswers && d.diagnosticAnswers.length > 0) {
+    const questionById = new Map<string, string>(
+      ONBOARDING_DIAGNOSTIC_QUESTIONS.map((q) => [q.id, q.question]),
+    );
+    const events = d.diagnosticAnswers.map(({ questionId, answer }) => ({
       user_id: user.id,
       type: 'answer' as const,
       content: `Q: ${questionById.get(questionId) ?? questionId}\nA: ${answer}`,
       source: 'onboarding_diagnostic',
-      occurred_at: new Date().toISOString(),
     }));
 
     const { error: eventsError } = await supabase.from('learning_events').insert(events);
