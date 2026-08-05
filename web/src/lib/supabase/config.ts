@@ -35,7 +35,7 @@ export function requireSupabaseConfig(): SupabaseConfig {
   return config;
 }
 
-/** Absolute origin for magic-link redirects. */
+/** Fallback origin for auth email redirects, when request headers aren't available. */
 export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 }

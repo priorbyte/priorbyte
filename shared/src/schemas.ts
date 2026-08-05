@@ -75,16 +75,48 @@ export const onboardingSchema = z.object({
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 
 /**
- * Magic-link sign-in — the only auth entry point. Username is always
- * collected on the form (even for returning users, who already have one);
- * the callback route only claims it onto a profile that doesn't have one
- * yet, so it's a no-op for anyone signing back in.
+ * Magic-link sign-in — kept for the extension's OTP-code flow (a browser
+ * extension has no URL bar to land a redirect on, so email+password isn't
+ * a natural fit there). The web app's own /login now uses password auth
+ * instead; see signUpSchema / signInSchema below.
  */
 export const magicLinkSchema = z.object({
   email: z.string().email().max(320),
   username: usernameSchema,
 });
 export type MagicLinkInput = z.infer<typeof magicLinkSchema>;
+
+/** Supabase's own minimum; matches what GoTrue will reject below anyway. */
+export const passwordSchema = z.string().min(8).max(72);
+
+/**
+ * Web sign-up: email + username + password. Supabase creates the account
+ * and emails a confirmation link — the one-time email step still exists,
+ * it just verifies the account rather than being how every sign-in works.
+ */
+export const signUpSchema = z.object({
+  email: z.string().email().max(320),
+  username: usernameSchema,
+  password: passwordSchema,
+});
+export type SignUpInput = z.infer<typeof signUpSchema>;
+
+/** Returning-user sign-in: no email round-trip, no username field. */
+export const signInSchema = z.object({
+  email: z.string().email().max(320),
+  password: z.string().min(1).max(72),
+});
+export type SignInInput = z.infer<typeof signInSchema>;
+
+export const resetPasswordRequestSchema = z.object({
+  email: z.string().email().max(320),
+});
+export type ResetPasswordRequestInput = z.infer<typeof resetPasswordRequestSchema>;
+
+export const updatePasswordSchema = z.object({
+  password: passwordSchema,
+});
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;
 
 /** Student-initiated change to staff chat visibility for one course. */
 export const chatSharingConsentSchema = z

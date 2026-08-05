@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import { createClient } from '@/lib/supabase/client';
-import { sendMagicLink, type LoginState } from './actions';
+import { signIn, signUp, type AuthState } from './actions';
 
-const INITIAL: LoginState = { status: 'idle' };
+const INITIAL: AuthState = { status: 'idle' };
 
+type Mode = 'sign-in' | 'sign-up';
 type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 
-function SubmitButton() {
+function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -17,13 +19,15 @@ function SubmitButton() {
       disabled={pending}
       className="w-full rounded-lg bg-cyan px-6 py-3 font-display font-bold text-background transition hover:shadow-glow disabled:opacity-50"
     >
-      {pending ? 'Sending…' : 'Send magic link'}
+      {pending ? pendingLabel : label}
     </button>
   );
 }
 
 export function LoginForm({ next }: { next: string }) {
-  const [state, formAction] = useFormState(sendMagicLink, INITIAL);
+  const [mode, setMode] = useState<Mode>('sign-in');
+  const [signInState, signInAction] = useFormState(signIn, INITIAL);
+  const [signUpState, signUpAction] = useFormState(signUp, INITIAL);
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
 
   async function checkUsername(value: string) {
@@ -43,82 +47,154 @@ export function LoginForm({ next }: { next: string }) {
       setUsernameStatus('idle');
       return;
     }
-    // A "taken" result here is only ever a hint — it might just be YOUR
-    // existing username if you already have an account. The actual claim
-    // attempt in the callback is what decides, not this check.
     setUsernameStatus(data ? 'available' : 'taken');
   }
 
-  if (state.status === 'sent') {
+  if (signUpState.status === 'sent') {
     return (
       <div className="pb-panel text-center" role="status">
         <p className="text-xl text-white">Check your inbox</p>
         <p className="mt-3 text-sm text-silver">
-          We sent a sign-in link to{' '}
-          <span className="font-mono text-cyan">{state.email}</span>. It expires in one hour.
+          We sent a confirmation link to{' '}
+          <span className="font-mono text-cyan">{signUpState.email}</span>. Click it to activate
+          your account, then sign in with the password you just set.
         </p>
       </div>
     );
   }
 
   return (
-    <form action={formAction} className="pb-panel space-y-4">
-      <input type="hidden" name="next" value={next} />
-
-      <div className="space-y-2 text-left">
-        <label htmlFor="email" className="pb-label block">
-          University email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          placeholder="you@university.edu"
-          className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
-        />
+    <div className="pb-panel space-y-4">
+      <div className="flex rounded-lg border border-line p-1">
+        <button
+          type="button"
+          onClick={() => setMode('sign-in')}
+          className={`flex-1 rounded-md py-2 text-sm transition ${
+            mode === 'sign-in' ? 'bg-cyan/10 text-cyan' : 'text-muted hover:text-silver'
+          }`}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('sign-up')}
+          className={`flex-1 rounded-md py-2 text-sm transition ${
+            mode === 'sign-up' ? 'bg-cyan/10 text-cyan' : 'text-muted hover:text-silver'
+          }`}
+        >
+          Sign up
+        </button>
       </div>
 
-      <div className="space-y-2 text-left">
-        <label htmlFor="username" className="pb-label block">
-          Username
-        </label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          required
-          pattern="[a-zA-Z0-9_]{3,30}"
-          autoComplete="username"
-          placeholder="e.g. jane_doe"
-          onChange={() => setUsernameStatus('idle')}
-          onBlur={(e) => void checkUsername(e.target.value)}
-          className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
-        />
-        {usernameStatus === 'checking' && <p className="text-xs text-muted">Checking…</p>}
-        {usernameStatus === 'available' && <p className="text-xs text-teal">Available</p>}
-        {usernameStatus === 'taken' && (
-          <p className="text-xs text-muted">
-            Already in use — that&apos;s fine if it&apos;s yours from a previous sign-in.
-          </p>
-        )}
-        {usernameStatus === 'invalid' && (
-          <p className="text-xs text-amber">3-30 characters: letters, numbers, underscores only</p>
-        )}
-      </div>
-
-      <SubmitButton />
-
-      {state.status === 'error' && (
-        <p className="text-sm text-amber" role="alert">
-          {state.message}
-        </p>
+      {mode === 'sign-in' ? (
+        <form action={signInAction} className="space-y-4">
+          <input type="hidden" name="next" value={next} />
+          <div className="space-y-2 text-left">
+            <label htmlFor="email" className="pb-label block">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@university.edu"
+              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
+            />
+          </div>
+          <div className="space-y-2 text-left">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="pb-label block">
+                Password
+              </label>
+              <Link href="/auth/reset-password" className="text-xs text-cyan hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
+            />
+          </div>
+          <SubmitButton label="Sign in" pendingLabel="Signing in…" />
+          {signInState.status === 'error' && (
+            <p className="text-sm text-amber" role="alert">
+              {signInState.message}
+            </p>
+          )}
+        </form>
+      ) : (
+        <form action={signUpAction} className="space-y-4">
+          <input type="hidden" name="next" value={next} />
+          <div className="space-y-2 text-left">
+            <label htmlFor="signup-email" className="pb-label block">
+              University email
+            </label>
+            <input
+              id="signup-email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@university.edu"
+              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
+            />
+          </div>
+          <div className="space-y-2 text-left">
+            <label htmlFor="signup-username" className="pb-label block">
+              Username
+            </label>
+            <input
+              id="signup-username"
+              name="username"
+              type="text"
+              required
+              pattern="[a-zA-Z0-9_]{3,30}"
+              autoComplete="username"
+              placeholder="e.g. jane_doe"
+              onChange={() => setUsernameStatus('idle')}
+              onBlur={(e) => void checkUsername(e.target.value)}
+              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
+            />
+            {usernameStatus === 'checking' && <p className="text-xs text-muted">Checking…</p>}
+            {usernameStatus === 'available' && <p className="text-xs text-teal">Available</p>}
+            {usernameStatus === 'taken' && (
+              <p className="text-xs text-amber">Already taken</p>
+            )}
+            {usernameStatus === 'invalid' && (
+              <p className="text-xs text-amber">
+                3-30 characters: letters, numbers, underscores only
+              </p>
+            )}
+          </div>
+          <div className="space-y-2 text-left">
+            <label htmlFor="signup-password" className="pb-label block">
+              Password
+            </label>
+            <input
+              id="signup-password"
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
+            />
+          </div>
+          <SubmitButton label="Create account" pendingLabel="Creating…" />
+          {signUpState.status === 'error' && (
+            <p className="text-sm text-amber" role="alert">
+              {signUpState.message}
+            </p>
+          )}
+        </form>
       )}
-
-      <p className="text-center text-xs text-muted">
-        No passwords, ever. We email you a one-time link.
-      </p>
-    </form>
+    </div>
   );
 }
