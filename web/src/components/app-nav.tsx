@@ -8,6 +8,7 @@ import { ShieldLogo } from '@/components/shield-logo';
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/tutor', label: 'AI Tutor' },
+  { href: '/tools', label: 'Learning Tools' },
   { href: '/timeline', label: 'Ghost Timeline' },
   { href: '/memory', label: 'Ghost Memory' },
   { href: '/settings', label: 'Settings' },
