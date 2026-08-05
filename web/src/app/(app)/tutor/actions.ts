@@ -89,7 +89,7 @@ export async function sendTutorMessage(
   await supabase.from('ai_usage').insert({
     user_id: user.id,
     feature: 'tutor',
-    model: 'gemini-2.0-flash',
+    model: 'gemini-flash-latest',
   });
 
   revalidatePath('/tutor');

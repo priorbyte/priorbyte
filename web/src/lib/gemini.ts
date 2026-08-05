@@ -23,7 +23,12 @@ export async function askGemini(history: ChatTurn[]): Promise<string | null> {
 
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      // "latest" alias rather than a pinned version: some pinned model names
+      // (gemini-2.0-flash, gemini-2.5-flash) returned a hard 0-quota or a
+      // "no longer available to new users" 404 on a freshly created key —
+      // the alias reliably resolves to whatever the account actually has
+      // free-tier access to.
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
