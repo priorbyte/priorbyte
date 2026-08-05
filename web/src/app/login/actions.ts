@@ -1,8 +1,28 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { magicLinkSchema } from '@priorbyte/shared/schemas';
 import { createClient } from '@/lib/supabase/server';
 import { getSiteUrl, isSupabaseConfigured } from '@/lib/supabase/config';
+
+/**
+ * The magic-link callback has to redirect back to whichever origin the
+ * student actually used — not a single fixed value. NEXT_PUBLIC_SITE_URL
+ * alone breaks the moment anyone opens the app from something other than
+ * that exact host (a LAN IP for testing on a second device, a preview
+ * domain, etc.): the email would always send them to the wrong machine.
+ * Falls back to the configured site URL if headers are unavailable.
+ */
+function getRequestOrigin(): string {
+  const h = headers();
+  const host = h.get('host');
+  if (!host) return getSiteUrl();
+
+  const isLocalNetwork =
+    host.startsWith('localhost') || host.startsWith('127.0.0.1') || /^\d+\.\d+\.\d+\.\d+/.test(host);
+  const proto = h.get('x-forwarded-proto') ?? (isLocalNetwork ? 'http' : 'https');
+  return `${proto}://${host}`;
+}
 
 export interface LoginState {
   status: 'idle' | 'sent' | 'error';
@@ -30,7 +50,7 @@ export async function sendMagicLink(
   }
 
   const next = String(formData.get('next') ?? '/dashboard');
-  const callback = new URL('/auth/callback', getSiteUrl());
+  const callback = new URL('/auth/callback', getRequestOrigin());
   // Only relative paths — an absolute `next` would make this an open redirect.
   callback.searchParams.set('next', next.startsWith('/') ? next : '/dashboard');
   // Carried through so a brand-new account can claim it on first sign-in.
