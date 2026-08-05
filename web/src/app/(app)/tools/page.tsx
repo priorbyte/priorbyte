@@ -8,11 +8,11 @@ const TOOLS = [
   { title: 'Notes Summarizer', href: '/tools/summarizer', available: true },
   { title: 'Flashcard Generator', href: '/tools/flashcards', available: true },
   { title: 'Quiz / MCQ Generator', href: '/tools/quiz', available: true },
+  { title: 'Formula Explainer', href: '/tools/formula', available: true },
+  { title: 'Concept Simplifier', href: '/tools/simplifier', available: true },
+  { title: 'Mind Map Generator', href: '/tools/mindmap', available: true },
   { title: 'PDF Reader', href: null, available: false },
   { title: 'Lecture Summarizer', href: null, available: false },
-  { title: 'Mind Map Generator', href: null, available: false },
-  { title: 'Formula Explainer', href: null, available: false },
-  { title: 'Concept Simplifier', href: null, available: false },
 ] as const;
 
 export default async function ToolsPage() {
