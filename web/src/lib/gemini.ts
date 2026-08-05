@@ -50,7 +50,11 @@ async function callGemini(
           system_instruction: { parts: [{ text: systemPrompt }] },
           contents,
           generationConfig: {
-            maxOutputTokens: 1024,
+            // 4096 default — the old 1024 truncated the AI Tutor mid-answer
+            // on anything longer than a couple of sentences. Callers that
+            // genuinely need more (document/long-text summarizers) override
+            // this explicitly rather than everyone paying for a huge ceiling.
+            maxOutputTokens: 4096,
             temperature: 0.7,
             ...generationConfig,
           },
@@ -61,10 +65,26 @@ async function callGemini(
     if (!res.ok) return null;
 
     const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
+      candidates?: {
+        content?: { parts?: { text?: string }[] };
+        finishReason?: string;
+      }[];
     };
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text?.trim() || null;
+    const candidate = data.candidates?.[0];
+    const text = candidate?.content?.parts?.[0]?.text?.trim();
+    if (!text) return null;
+
+    // MAX_TOKENS means Gemini stopped mid-thought because the ceiling was
+    // hit, not because it finished — that's a truncated answer, not a
+    // short one, and the caller has no other way to tell the difference.
+    // Skipped for JSON mode: appending prose to truncated JSON would just
+    // break JSON.parse instead of surfacing anything useful — generateJSON
+    // already turns a parse failure into a clean "try again" for the caller.
+    if (candidate?.finishReason === 'MAX_TOKENS' && generationConfig.responseMimeType !== 'application/json') {
+      return `${text}\n\n[Response was cut off for length — try a shorter input, or ask to continue.]`;
+    }
+
+    return text;
   } catch {
     return null;
   }
@@ -84,7 +104,7 @@ export async function generateText(
   userPrompt: string,
 ): Promise<string | null> {
   return callGemini(systemPrompt, [{ role: 'user', parts: [{ text: userPrompt }] }], {
-    maxOutputTokens: 2048,
+    maxOutputTokens: 8192,
   });
 }
 
@@ -100,7 +120,7 @@ export async function generateJSON<T>(
   responseSchema: object,
 ): Promise<T | null> {
   const raw = await callGemini(systemPrompt, [{ role: 'user', parts: [{ text: userPrompt }] }], {
-    maxOutputTokens: 2048,
+    maxOutputTokens: 8192,
     responseMimeType: 'application/json',
     responseSchema,
   });
@@ -109,6 +129,9 @@ export async function generateJSON<T>(
   try {
     return JSON.parse(raw) as T;
   } catch {
+    // A MAX_TOKENS truncation note appended to JSON output breaks JSON.parse
+    // outright — surface that as "try again with less input" rather than a
+    // silent null the caller can't distinguish from any other failure.
     return null;
   }
 }
@@ -133,6 +156,6 @@ export async function generateTextFromDocument(
         parts: [{ inline_data: { mime_type: mimeType, data: base64Data } }, { text: instruction }],
       },
     ],
-    { maxOutputTokens: 2048 },
+    { maxOutputTokens: 8192 },
   );
 }
