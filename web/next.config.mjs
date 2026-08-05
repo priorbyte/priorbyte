@@ -6,6 +6,11 @@ const nextConfig = {
   eslint: {
     dirs: ['src'],
   },
+  experimental: {
+    // Default 1MB body limit is too small for a base64-encoded PDF upload
+    // (the PDF Reader tool sends the file straight to Gemini as inline data).
+    serverActionsBodySizeLimit: '10mb',
+  },
 };
 
 export default nextConfig;

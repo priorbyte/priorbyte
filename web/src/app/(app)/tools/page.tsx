@@ -11,8 +11,8 @@ const TOOLS = [
   { title: 'Formula Explainer', href: '/tools/formula', available: true },
   { title: 'Concept Simplifier', href: '/tools/simplifier', available: true },
   { title: 'Mind Map Generator', href: '/tools/mindmap', available: true },
-  { title: 'PDF Reader', href: null, available: false },
-  { title: 'Lecture Summarizer', href: null, available: false },
+  { title: 'PDF Reader', href: '/tools/pdf-reader', available: true },
+  { title: 'Lecture Summarizer', href: '/tools/lecture', available: true },
 ] as const;
 
 export default async function ToolsPage() {

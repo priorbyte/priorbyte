@@ -19,6 +19,8 @@ interface GenerationConfig {
   responseSchema?: object;
 }
 
+type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
+
 /**
  * Low-level call to Gemini's generateContent endpoint. Returns null (never
  * throws) on missing config or any API failure, so callers can show a clean
@@ -32,7 +34,7 @@ interface GenerationConfig {
  */
 async function callGemini(
   systemPrompt: string,
-  contents: { role: string; parts: { text: string }[] }[],
+  contents: { role: string; parts: GeminiPart[] }[],
   generationConfig: GenerationConfig = {},
 ): Promise<string | null> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -109,4 +111,28 @@ export async function generateJSON<T>(
   } catch {
     return null;
   }
+}
+
+/**
+ * Single-turn, document input — used by the PDF Reader. Sends the file
+ * inline as base64 rather than shelling out to a PDF-parsing library:
+ * Gemini's multimodal models read PDF content natively, so no new
+ * dependency is needed for text extraction.
+ */
+export async function generateTextFromDocument(
+  systemPrompt: string,
+  instruction: string,
+  base64Data: string,
+  mimeType: string,
+): Promise<string | null> {
+  return callGemini(
+    systemPrompt,
+    [
+      {
+        role: 'user',
+        parts: [{ inline_data: { mime_type: mimeType, data: base64Data } }, { text: instruction }],
+      },
+    ],
+    { maxOutputTokens: 2048 },
+  );
 }
