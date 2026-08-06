@@ -11,6 +11,7 @@ const LINKS = [
   { href: '/tools', label: 'Learning Tools' },
   { href: '/timeline', label: 'Ghost Timeline' },
   { href: '/memory', label: 'Ghost Memory' },
+  { href: '/oracle', label: 'Ghost Oracle' },
   { href: '/settings', label: 'Settings' },
 ] as const;
 
