@@ -1,6 +1,21 @@
 import { redirect } from 'next/navigation';
 import type { ProfileRow } from '@priorbyte/shared/database';
+import type { SelfServiceRole } from '@priorbyte/shared/constants';
 import { createClient } from '@/lib/supabase/server';
+
+/**
+ * Karunya-specific: role is derived from the account's own email domain,
+ * not chosen — matches the enforcement in guard_profile_privileges, which
+ * rejects the mismatched case regardless of what this returns. This is the
+ * UX half (skip the choice, show the right thing); that migration is the
+ * half that actually matters.
+ */
+export function deriveRoleFromEmail(email: string): SelfServiceRole | null {
+  const lower = email.toLowerCase();
+  if (lower.endsWith('@karunya.edu.in')) return 'student';
+  if (lower.endsWith('@karunya.edu')) return 'faculty';
+  return null;
+}
 
 /**
  * Resolves the signed-in user's profile, or bounces to the right place.

@@ -99,7 +99,7 @@ export function LoginForm({ next }: { next: string }) {
               type="email"
               required
               autoComplete="email"
-              placeholder="you@university.edu"
+              placeholder="yourname@karunya.edu.in"
               className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
             />
           </div>
@@ -141,9 +141,13 @@ export function LoginForm({ next }: { next: string }) {
               type="email"
               required
               autoComplete="email"
-              placeholder="you@university.edu"
+              placeholder="yourname@karunya.edu.in"
               className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
             />
+            <p className="text-xs text-muted">
+              Students: @karunya.edu.in — Staff: @karunya.edu. Your role is set automatically
+              from this.
+            </p>
           </div>
           <div className="space-y-2 text-left">
             <label htmlFor="signup-username" className="pb-label block">

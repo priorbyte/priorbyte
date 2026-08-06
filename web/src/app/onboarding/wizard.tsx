@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import {
   ONBOARDING_DIAGNOSTIC_QUESTIONS,
-  SELF_SERVICE_ROLES,
   YEAR_LEVEL_LABELS,
   YEAR_LEVELS,
+  type SelfServiceRole,
 } from '@priorbyte/shared/constants';
 import { createClient } from '@/lib/supabase/client';
 import { GitHubConnect } from './github-connect';
@@ -45,9 +45,11 @@ function FinishButton() {
 export function OnboardingWizard({
   displayName,
   userId,
+  role,
 }: {
   displayName: string;
   userId: string;
+  role: SelfServiceRole;
 }) {
   const [step, setStep] = useState(0);
   const [courses, setCourses] = useState<string[]>([]);
@@ -239,25 +241,13 @@ export function OnboardingWizard({
             </div>
             <div>
               <p className="pb-label mb-1">Role</p>
-              <div className="flex gap-3">
-                {SELF_SERVICE_ROLES.map((role) => (
-                  <label
-                    key={role}
-                    className="flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm text-silver has-[:checked]:border-cyan has-[:checked]:text-cyan"
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role}
-                      defaultChecked={role === 'student'}
-                      className="accent-cyan"
-                    />
-                    {role === 'student' ? 'Student' : 'Faculty'}
-                  </label>
-                ))}
+              <input type="hidden" name="role" value={role} />
+              <div className="rounded-lg border border-line bg-background px-4 py-2.5 text-sm text-white">
+                {role === 'student' ? 'Student' : 'Faculty'}
               </div>
               <p className="mt-1 text-xs text-muted">
-                Set once here — locked afterward without an admin.
+                Set automatically from your @{role === 'student' ? 'karunya.edu.in' : 'karunya.edu'}{' '}
+                email — locked afterward without an admin.
               </p>
             </div>
           </div>

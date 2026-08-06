@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { SetupNotice } from '@/components/setup-notice';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { deriveRoleFromEmail } from '@/lib/auth';
 import { OnboardingWizard } from './wizard';
 
 export const metadata: Metadata = { title: 'Get set up' };
@@ -35,6 +36,10 @@ export default async function OnboardingPage() {
   if (profile?.onboarding_completed_at) redirect('/dashboard');
 
   const displayName = profile?.display_name?.split(' ')[0] ?? 'student';
+  // Falls back to 'student' only for the rare case of an existing account
+  // predating the domain restriction — guard_profile_privileges is what
+  // actually enforces the real rule regardless of this default.
+  const role = deriveRoleFromEmail(user.email ?? '') ?? 'student';
 
   return (
     <main className="relative isolate flex min-h-screen items-center justify-center px-6 py-16">
@@ -42,7 +47,7 @@ export default async function OnboardingPage() {
         aria-hidden
         className="absolute inset-0 -z-10 bg-blueprint bg-blueprint-grid [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]"
       />
-      <OnboardingWizard displayName={displayName} userId={user.id} />
+      <OnboardingWizard displayName={displayName} userId={user.id} role={role} />
     </main>
   );
 }
