@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import type { CourseRow } from '@priorbyte/shared/database';
 import { requireProfile } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { CreateCourseForm } from './create-course-form';
 
 export const metadata: Metadata = { title: 'Faculty' };
 
@@ -34,6 +35,8 @@ export default async function FacultyPage() {
           haven&apos;t shared.
         </p>
       </div>
+
+      <CreateCourseForm />
 
       {(courses ?? []).length === 0 ? (
         <p className="text-sm text-muted">
