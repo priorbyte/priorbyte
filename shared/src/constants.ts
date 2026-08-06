@@ -117,6 +117,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 /** Dashboard widgets that actually exist and can be shown, hidden, or reordered. */
 export const DASHBOARD_WIDGETS = [
   'streak',
+  'upcoming_inoculations',
   'weekly_snapshot',
   'weak_strong_topics',
   'knowledge_map',

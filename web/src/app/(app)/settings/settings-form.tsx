@@ -15,6 +15,7 @@ const INITIAL: SettingsState = { status: 'idle' };
 
 const WIDGET_LABELS: Record<DashboardWidget, string> = {
   streak: 'Streak & consistency',
+  upcoming_inoculations: 'Upcoming inoculations',
   weekly_snapshot: 'This week snapshot',
   weak_strong_topics: 'Weak / strong topics',
   knowledge_map: 'Top subjects (knowledge map)',

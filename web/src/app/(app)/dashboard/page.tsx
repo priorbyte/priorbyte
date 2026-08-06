@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { TIER_LIMITS, mergeDashboardPreferences, type DashboardWidget } from '@priorbyte/shared/constants';
-import type { KnowledgeGraphRow, LearningEventRow, TopicMasteryRow } from '@priorbyte/shared/database';
+import type {
+  KnowledgeGraphRow,
+  LearningEventRow,
+  PredictedErrorRow,
+  TopicMasteryRow,
+} from '@priorbyte/shared/database';
 import { createClient } from '@/lib/supabase/server';
 import { requireProfile } from '@/lib/auth';
 import { AutoRefresh } from '@/components/auto-refresh';
@@ -68,6 +73,7 @@ export default async function DashboardPage() {
     { count: problemsSolvedCount },
     { count: mistakesFixedCount },
     { data: remaining },
+    { data: upcomingInoculations },
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase
@@ -122,6 +128,14 @@ export default async function DashboardPage() {
       .eq('outcome', 'prevented')
       .gte('resolved_at', sevenDaysAgo),
     supabase.rpc('ai_queries_remaining'),
+    supabase
+      .from('predicted_errors')
+      .select('*')
+      .eq('user_id', profile.id)
+      .eq('outcome', 'pending')
+      .order('confidence', { ascending: false })
+      .limit(3)
+      .returns<PredictedErrorRow[]>(),
   ]);
 
   // --- streak & consistency ---------------------------------------------
@@ -185,6 +199,37 @@ export default async function DashboardPage() {
           </div>
         ))}
       </div>
+    ),
+    upcoming_inoculations: (
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="pb-label">Upcoming inoculations</h2>
+          <Link href="/oracle" className="font-mono text-xs text-cyan hover:underline">
+            Open Ghost Oracle →
+          </Link>
+        </div>
+        {(upcomingInoculations ?? []).length === 0 ? (
+          <p className="text-sm text-muted">
+            No predictions waiting yet — visit Ghost Oracle to generate some from your captured
+            work.
+          </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(upcomingInoculations ?? []).map((p) => {
+              const topic = topicById.get(p.topic_id);
+              return (
+                <div key={p.id} className="pb-panel">
+                  <p className="pb-label">{topic?.title ?? 'Topic'}</p>
+                  <p className="mt-2 text-sm text-silver">{p.prediction}</p>
+                  <p className="mt-3 font-mono text-xs text-muted">
+                    {Math.round(p.confidence * 100)}% confidence
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     ),
     integration_status: (
       <div className="grid gap-4 sm:grid-cols-2">
