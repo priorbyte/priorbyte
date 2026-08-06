@@ -39,11 +39,11 @@ export default async function OraclePage() {
   const topics = allTopics ?? [];
   const topicById = new Map(topics.map((t) => [t.id, t]));
 
-  // Stand-in for the Section 9 pipeline: Psychic Lattice recomputes the
-  // vulnerability model (skipped if computed within the last 24h), then the
-  // Error Oracle generates predictions — but only when nothing is already
-  // pending, so this doesn't fire a fresh batch of Gemini calls on every
-  // single page visit once predictions exist.
+  // The daily Vercel Cron at /api/cron/oracle normally does this for every
+  // onboarded account. This inline call is the fallback for a brand-new
+  // account visiting before the next cron tick — ensureVulnerabilityModel's
+  // 24h freshness check and the pendingCount guard make it a no-op once the
+  // cron (or an earlier visit) already covered today.
   const vulnerabilityModel = await ensureVulnerabilityModel(serviceClient, profile.id, topics);
 
   const { count: pendingCount } = await supabase

@@ -10,13 +10,12 @@ import type { VulnerabilityPattern } from '@priorbyte/shared/types';
 import { generateJSON } from './gemini';
 
 /**
- * Stand-in for the Section 9 "Psychic Lattice" daily cron. A real cron needs
- * a deployed Edge Function (`supabase login` + `functions deploy`, a
- * separate CLI auth this environment doesn't have) — this runs the same
- * computation inline, triggered when the student visits Ghost Oracle, and
- * skips recomputation if the model is still fresh. Functionally equivalent
- * for a single-user dev/demo context; a real multi-tenant deployment would
- * still want the actual cron so it doesn't wait on a page visit.
+ * The Section 9 "Psychic Lattice" computation. Runs from two call sites:
+ * the daily Vercel Cron at /api/cron/oracle (the real, scheduled path), and
+ * inline when a student visits Ghost Oracle directly (so a brand-new
+ * account doesn't have to wait for the next cron tick). The freshness check
+ * below makes both call sites safe to share — whichever runs first for a
+ * given day wins, the other is a no-op.
  */
 
 const STALE_AFTER_MS = 24 * 60 * 60 * 1000; // "daily" — matches the blueprint's cadence
