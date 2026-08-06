@@ -29,7 +29,12 @@ export function AppNav({
   signOutAction: () => Promise<void>;
 }) {
   const pathname = usePathname();
-  const links = role === 'admin' ? [...LINKS, { href: '/admin', label: 'Admin' }] : LINKS;
+  const links =
+    role === 'faculty'
+      ? [...LINKS, { href: '/faculty', label: 'Faculty' }]
+      : role === 'admin'
+        ? [...LINKS, { href: '/admin', label: 'Admin' }]
+        : LINKS;
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
