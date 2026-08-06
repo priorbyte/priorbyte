@@ -406,7 +406,11 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Link href="/ghost-score" className="pb-panel block transition hover:border-cyan/30">
+          <h2 className="text-2xl">Ghost Score</h2>
+          <p className="mt-2 text-sm text-muted">One number for how you&apos;re doing, over time.</p>
+        </Link>
         <Link href="/timeline" className="pb-panel block transition hover:border-cyan/30">
           <h2 className="text-2xl">Ghost Timeline</h2>
           <p className="mt-2 text-sm text-muted">

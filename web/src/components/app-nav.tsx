@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/tutor', label: 'AI Tutor' },
   { href: '/tools', label: 'Learning Tools' },
   { href: '/timeline', label: 'Ghost Timeline' },
+  { href: '/ghost-score', label: 'Ghost Score' },
   { href: '/memory', label: 'Ghost Memory' },
   { href: '/oracle', label: 'Ghost Oracle' },
   { href: '/settings', label: 'Settings' },
