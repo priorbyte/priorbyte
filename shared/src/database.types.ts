@@ -83,6 +83,12 @@ export type CourseEnrollmentRow = {
   enrolled_at: string;
 }
 
+export type CourseStaffRow = {
+  course_id: string;
+  user_id: string;
+  assigned_at: string;
+}
+
 export type KnowledgeGraphRow = {
   id: string;
   slug: string;
@@ -234,6 +240,7 @@ export type Database = {
       profiles: TableShape<ProfileRow, 'id' | 'email'>;
       courses: TableShape<CourseRow, 'code' | 'title'>;
       course_enrollments: TableShape<CourseEnrollmentRow, 'course_id' | 'user_id'>;
+      course_staff: TableShape<CourseStaffRow, 'course_id' | 'user_id'>;
       knowledge_graph: TableShape<KnowledgeGraphRow, 'slug' | 'title' | 'subject'>;
       knowledge_graph_edges: TableShape<KnowledgeGraphEdgeRow, 'topic_id' | 'prerequisite_id'>;
       learning_events: TableShape<LearningEventRow, 'user_id' | 'type' | 'content'>;

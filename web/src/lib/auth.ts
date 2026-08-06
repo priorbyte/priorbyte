@@ -43,3 +43,16 @@ export async function requireProfile(): Promise<ProfileRow> {
 
   return profile;
 }
+
+/**
+ * Admin is never self-service (see guard_profile_privileges) — the only way
+ * to become one is another admin promoting you, or a one-time SQL statement
+ * for the very first admin. This just gates the portal; every actual write
+ * it performs is still enforced by the matching RLS policy, not by this
+ * check alone.
+ */
+export async function requireAdmin(): Promise<ProfileRow> {
+  const profile = await requireProfile();
+  if (profile.role !== 'admin') redirect('/dashboard');
+  return profile;
+}

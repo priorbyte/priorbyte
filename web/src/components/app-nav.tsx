@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { SubscriptionTier } from '@priorbyte/shared/constants';
+import type { SubscriptionTier, UserRole } from '@priorbyte/shared/constants';
 import { ShieldLogo } from '@/components/shield-logo';
 
 const LINKS = [
@@ -18,13 +18,16 @@ const LINKS = [
 export function AppNav({
   displayName,
   tier,
+  role,
   signOutAction,
 }: {
   displayName: string;
   tier: SubscriptionTier;
+  role: UserRole;
   signOutAction: () => Promise<void>;
 }) {
   const pathname = usePathname();
+  const links = role === 'admin' ? [...LINKS, { href: '/admin', label: 'Admin' }] : LINKS;
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-background/85 backdrop-blur">
@@ -35,7 +38,7 @@ export function AppNav({
         </Link>
 
         <nav className="flex items-center gap-1" aria-label="Main">
-          {LINKS.map(({ href, label }) => {
+          {links.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
               <Link
