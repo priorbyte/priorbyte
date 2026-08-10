@@ -1,0 +1,7 @@
+venv/
+data/raw/*.txt
+data/*.bin
+data/vocab.json
+out/
+__pycache__/
+*.pyc
