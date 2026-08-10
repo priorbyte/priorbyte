@@ -23,7 +23,11 @@ def main() -> None:
         raise SystemExit(f"No checkpoint at {ckpt_path} -- run train.py first.")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    checkpoint = torch.load(ckpt_path, map_location=device)
+    # weights_only=False is safe here specifically because this checkpoint
+    # was written by train.py on this same machine, not downloaded from
+    # anywhere untrusted -- PyTorch's warning is a blanket one about
+    # `torch.load` in general, not a finding about this file.
+    checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
 
     cfg = checkpoint["config"]
     vocab = checkpoint["vocab"]
