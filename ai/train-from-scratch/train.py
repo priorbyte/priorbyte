@@ -46,9 +46,19 @@ def load_split(name: str) -> np.ndarray:
 
 
 def get_batch(data: np.ndarray, block_size: int, batch_size: int, device: str):
-    ix = torch.randint(len(data) - block_size - 1, (batch_size,))
-    x = torch.stack([torch.from_numpy(data[i : i + block_size].astype(np.int64)) for i in ix])
-    y = torch.stack([torch.from_numpy(data[i + 1 : i + 1 + block_size].astype(np.int64)) for i in ix])
+    # A dataset shorter than block_size (common on a first smoke test with a
+    # tiny sample file) would make len(data) - block_size - 1 negative,
+    # which torch.randint rejects outright. Clamping keeps small datasets
+    # usable instead of crashing -- real training data should be well past
+    # this floor anyway.
+    effective_block_size = min(block_size, max(len(data) - 2, 1))
+    ix = torch.randint(len(data) - effective_block_size - 1, (batch_size,))
+    x = torch.stack(
+        [torch.from_numpy(data[i : i + effective_block_size].astype(np.int64)) for i in ix]
+    )
+    y = torch.stack(
+        [torch.from_numpy(data[i + 1 : i + 1 + effective_block_size].astype(np.int64)) for i in ix]
+    )
     return x.to(device), y.to(device)
 
 
