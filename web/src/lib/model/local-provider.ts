@@ -1,4 +1,3 @@
-import { PDFParse } from 'pdf-parse';
 import type { ChatTurn, GenerationOptions, PriorbyteModel } from './types';
 
 /**
@@ -110,18 +109,26 @@ export class LocalModel implements PriorbyteModel {
   ): Promise<string | null> {
     if (mimeType !== 'application/pdf') return null;
 
+    // Loaded on demand, not at module scope: pdf-parse pulls in pdfjs-dist,
+    // which references browser-only APIs (DOMMatrix) at import time in
+    // Vercel's Node serverless runtime. A top-level import broke every
+    // route that touches this file — chat, text, JSON, all of it — not just
+    // PDF reading. A dynamic import here means only an actual PDF-reading
+    // request ever loads it, and the try/catch below means even a genuinely
+    // broken environment degrades to "fall through to Gemini" instead of
+    // taking anything else down with it.
     let extractedText: string;
-    const parser = new PDFParse({ data: Buffer.from(base64Data, 'base64') });
     try {
-      const result = await parser.getText();
-      extractedText = result.text.trim();
+      const { PDFParse } = await import('pdf-parse');
+      const parser = new PDFParse({ data: Buffer.from(base64Data, 'base64') });
+      try {
+        const result = await parser.getText();
+        extractedText = result.text.trim();
+      } finally {
+        await parser.destroy();
+      }
     } catch {
-      // Encrypted, corrupt, or otherwise unparseable PDF -- null tells
-      // FallbackModel to try Gemini next rather than surfacing a raw parser
-      // error to the caller.
       return null;
-    } finally {
-      await parser.destroy();
     }
 
     if (!extractedText) {
