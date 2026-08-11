@@ -1,3 +1,4 @@
+import { TUTOR_SYSTEM_PROMPT } from './prompts';
 import type { ChatTurn, GenerationOptions, PriorbyteModel } from './types';
 
 /**
@@ -70,12 +71,8 @@ export class LocalModel implements PriorbyteModel {
     // separate system_instruction field; the last user turn plus the rest of
     // history collapsed into the prompt keeps this simple without a second
     // request shape just for multi-turn.
-    const systemPrompt =
-      'You are the Priorbyte AI Tutor — part of a learning immune system, not a generic ' +
-      'assistant. Help the student understand the underlying concept rather than just handing ' +
-      'over an answer. Be concise. When they made a mistake, name it plainly and explain why.';
     const transcript = history.map((t) => `${t.role === 'user' ? 'Student' : 'Tutor'}: ${t.content}`).join('\n');
-    return this.complete(systemPrompt, transcript);
+    return this.complete(TUTOR_SYSTEM_PROMPT, transcript);
   }
 
   async generateText(
