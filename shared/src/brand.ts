@@ -12,10 +12,11 @@ export const BRAND = {
 } as const;
 
 export const COLORS = {
-  /** Page background — deep navy */
-  background: '#0B0E14',
-  /** Primary accent — cyan */
-  cyan: '#00E5FF',
+  /** Page background — Cyber-Academic near-black */
+  background: '#131313',
+  /** Primary accent — neon yellow-green (kept the `cyan` key name for
+   * call-site compatibility across /web and /extension) */
+  cyan: '#D8EF00',
   /** Protective / success — shield teal */
   teal: '#00BFA5',
   /** Warning / prediction alert — amber */
@@ -27,20 +28,20 @@ export const COLORS = {
 /** Derived surface tones, kept here so /web and /extension stay in sync. */
 export const SURFACES = {
   /** Card / panel background, one step above the page */
-  surface: '#111622',
+  surface: '#0E0E0E',
   /** Raised element (hovered card, popover) */
-  surfaceRaised: '#171E2E',
+  surfaceRaised: '#201F1F',
   /** Thin geometric line work */
-  line: '#1F2937',
+  line: '#464932',
   /** Muted text on dark surfaces */
-  muted: '#6B7A8F',
+  muted: '#C7C9AB',
 } as const;
 
 export const FONTS = {
   /** Headlines */
-  display: 'Sora',
+  display: 'Anton',
   /** Body copy */
-  body: 'Inter',
+  body: 'JetBrains Mono',
   /** Data, metrics, code */
   mono: 'JetBrains Mono',
 } as const;

@@ -12,14 +12,18 @@
    */
   :root {
     color-scheme: dark;
-    --pb-bg: 11 14 20; /* #0B0E14 */
-    --pb-surface: 17 22 34; /* #111622 */
-    --pb-surface-raised: 23 30 46; /* #171E2E */
-    --pb-line: 31 41 55; /* #1F2937 */
-    --pb-muted: 107 122 143; /* #6B7A8F */
-    --pb-silver: 176 190 197; /* #B0BEC5 — body text */
-    --pb-heading: 255 255 255; /* headings, on top of `white` itself */
-    --pb-accent: 0 229 255; /* #00E5FF — default Cognitive Blueprint cyan */
+    /* Cyber-Academic system: dark neon-yellow-green on near-black, ported
+       from the Stitch design export. Values below map to that system's
+       Material-3-style tokens (noted in comments) so a future re-export can
+       be diffed against these directly. */
+    --pb-bg: 19 19 19; /* #131313 — background */
+    --pb-surface: 14 14 14; /* #0E0E0E — surface-container-lowest, card bg */
+    --pb-surface-raised: 32 31 31; /* #201F1F — surface-container, headers/hover */
+    --pb-line: 70 73 50; /* #464932 — outline-variant, default borders */
+    --pb-muted: 199 201 171; /* #C7C9AB — on-surface-variant, secondary text */
+    --pb-silver: 229 226 225; /* #E5E2E1 — on-surface, body text */
+    --pb-heading: 255 255 255; /* headings */
+    --pb-accent: 216 239 0; /* #D8EF00 — primary-fixed, the neon accent */
   }
 
   /*
@@ -48,7 +52,9 @@
   h2,
   h3,
   h4 {
-    @apply font-display font-bold text-white;
+    /* Anton (the display face) only ships one weight and is drawn bold by
+       design; the system calls for headlines in all-caps. */
+    @apply font-display uppercase text-white;
   }
 
   ::selection {
@@ -57,12 +63,16 @@
 }
 
 @layer components {
-  /* Thin-line panel — the core Cognitive Blueprint surface. */
+  /* Thin-line panel — the core surface every card in the app is built from.
+     Hover-to-accent border + faint glow matches the Cyber-Academic system's
+     "inactive is flat, active gains a neon edge" component rule — applying
+     it here means every existing `.pb-panel` across the app picks it up
+     without a per-page change. */
   .pb-panel {
-    @apply rounded-xl border border-line bg-surface p-6;
+    @apply rounded-xl border border-line bg-surface p-6 transition-colors duration-200 hover:border-cyan/40;
   }
 
   .pb-label {
-    @apply font-mono text-xs uppercase tracking-[0.2em] text-muted;
+    @apply font-label text-xs font-bold uppercase tracking-[0.15em] text-muted;
   }
 }

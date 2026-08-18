@@ -131,9 +131,14 @@ export type DashboardWidget = (typeof DASHBOARD_WIDGETS)[number];
 export const ACCENT_COLORS = ['cyan', 'teal', 'purple', 'amber'] as const;
 export type AccentColor = (typeof ACCENT_COLORS)[number];
 
-/** RGB triplets (space-separated, matching the CSS var convention in globals.css). */
+/**
+ * RGB triplets (space-separated, matching the CSS var convention in globals.css).
+ * `cyan` is the default accent and carries the Cyber-Academic system's signature
+ * neon yellow-green (#D8EF00) — the name is legacy, kept so existing preference
+ * rows and the `AccentColor` union don't need a migration for a palette swap.
+ */
 export const ACCENT_COLOR_VALUES: Record<AccentColor, string> = {
-  cyan: '0 229 255',
+  cyan: '216 239 0',
   teal: '0 191 165',
   purple: '168 85 247',
   amber: '255 171 0',

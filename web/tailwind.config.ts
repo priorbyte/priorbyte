@@ -28,9 +28,13 @@ const config: Config = {
         amber: { DEFAULT: COLORS.amber },
       },
       fontFamily: {
-        display: ['var(--font-sora)', 'system-ui', 'sans-serif'],
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-anton)', 'system-ui', 'sans-serif'],
+        // Body text runs in JetBrains Mono system-wide — the "diagnostic
+        // terminal" read the Cyber-Academic system calls for, not a
+        // decorative choice confined to code blocks.
+        sans: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
         mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
+        label: ['var(--font-space-grotesk)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         // Static, not CSS-var-driven: an accent-reactive glow is a nice-to-have,

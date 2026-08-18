@@ -40,8 +40,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         tier={profile.subscription_tier}
         role={profile.role}
         signOutAction={signOut}
-      />
-      <div className="mx-auto max-w-6xl px-6 py-10">{children}</div>
+      >
+        {children}
+      </AppNav>
     </div>
   );
 }
