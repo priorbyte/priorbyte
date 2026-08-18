@@ -36,10 +36,11 @@ export class FallbackModel implements PriorbyteModel {
     systemPrompt: string,
     userPrompt: string,
     responseSchema: object,
+    options?: GenerationOptions,
   ): Promise<T | null> {
     return (
-      (await this.primary.generateJSON<T>(systemPrompt, userPrompt, responseSchema)) ??
-      this.secondary.generateJSON<T>(systemPrompt, userPrompt, responseSchema)
+      (await this.primary.generateJSON<T>(systemPrompt, userPrompt, responseSchema, options)) ??
+      this.secondary.generateJSON<T>(systemPrompt, userPrompt, responseSchema, options)
     );
   }
 

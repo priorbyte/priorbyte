@@ -83,7 +83,9 @@ export async function generateMindMap(
     return { status: 'error', message: quota.message ?? 'Quota check failed.' };
   }
 
-  const map = await generateJSON<MindMap>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA);
+  const map = await generateJSON<MindMap>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA, {
+    task: 'structured',
+  });
   if (!map || !map.branches?.length) {
     return { status: 'error', message: 'Could not build a mind map from that. Try again.' };
   }

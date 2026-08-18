@@ -6,7 +6,17 @@ export interface ChatTurn {
 export interface GenerationOptions {
   maxOutputTokens?: number;
   temperature?: number;
+  /**
+   * Optional hint for providers that route different tasks to different
+   * underlying models (e.g. LocalModel picking a reasoning-tuned model for
+   * predictions vs. a fast general model for chat). Providers that only
+   * ever use one model (GeminiModel) ignore this entirely — it's additive,
+   * not part of the contract every provider must honor.
+   */
+  task?: ModelTask;
 }
+
+export type ModelTask = 'chat' | 'reasoning' | 'structured' | 'general';
 
 /**
  * The provider-agnostic contract every Priorbyte AI feature is written
@@ -30,7 +40,12 @@ export interface PriorbyteModel {
   ): Promise<string | null>;
 
   /** Single-turn, schema-constrained JSON output — flashcards, quizzes, predictions. */
-  generateJSON<T>(systemPrompt: string, userPrompt: string, responseSchema: object): Promise<T | null>;
+  generateJSON<T>(
+    systemPrompt: string,
+    userPrompt: string,
+    responseSchema: object,
+    options?: GenerationOptions,
+  ): Promise<T | null>;
 
   /** Single-turn, document input (e.g. a PDF) alongside an instruction. */
   generateFromDocument(

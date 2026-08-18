@@ -1,6 +1,6 @@
-import { model, type ChatTurn } from './model';
+import { model, type ChatTurn, type GenerationOptions } from './model';
 
-export type { ChatTurn };
+export type { ChatTurn, GenerationOptions };
 
 /**
  * Backward-compatible shim over the provider-agnostic model layer in
@@ -26,8 +26,9 @@ export async function generateJSON<T>(
   systemPrompt: string,
   userPrompt: string,
   responseSchema: object,
+  options?: GenerationOptions,
 ): Promise<T | null> {
-  return model.generateJSON<T>(systemPrompt, userPrompt, responseSchema);
+  return model.generateJSON<T>(systemPrompt, userPrompt, responseSchema, options);
 }
 
 export async function generateTextFromDocument(

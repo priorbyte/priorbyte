@@ -62,7 +62,9 @@ export async function generateQuiz(
     return { status: 'error', message: quota.message ?? 'Quota check failed.' };
   }
 
-  const questions = await generateJSON<QuizQuestion[]>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA);
+  const questions = await generateJSON<QuizQuestion[]>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA, {
+    task: 'structured',
+  });
   const valid = (questions ?? []).filter(
     (q) => Array.isArray(q.options) && q.options.length === 4,
   );

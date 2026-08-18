@@ -56,7 +56,9 @@ export async function generateFlashcards(
     return { status: 'error', message: quota.message ?? 'Quota check failed.' };
   }
 
-  const cards = await generateJSON<Flashcard[]>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA);
+  const cards = await generateJSON<Flashcard[]>(SYSTEM_PROMPT, content, RESPONSE_SCHEMA, {
+    task: 'structured',
+  });
   if (!cards || cards.length === 0) {
     return { status: 'error', message: 'Could not generate flashcards from that. Try again.' };
   }

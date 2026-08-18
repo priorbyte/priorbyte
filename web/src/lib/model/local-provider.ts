@@ -1,5 +1,5 @@
 import { TUTOR_SYSTEM_PROMPT } from './prompts';
-import type { ChatTurn, GenerationOptions, PriorbyteModel } from './types';
+import type { ChatTurn, GenerationOptions, ModelTask, PriorbyteModel } from './types';
 
 /**
  * Talks to an OpenAI-compatible chat completions endpoint — the shape Ollama
@@ -8,6 +8,12 @@ import type { ChatTurn, GenerationOptions, PriorbyteModel } from './types';
  * product is still pre-revenue: free to run, at the cost of only being
  * reachable while that machine is on and tunneled to a public URL (ngrok,
  * Cloudflare Tunnel, etc.) set as LOCAL_MODEL_URL.
+ *
+ * Task-based model routing: when a laptop has several models already pulled
+ * (e.g. via Ollama), different Priorbyte features can use different ones
+ * instead of forcing everything through one general model. Each task has
+ * its own optional env var; anything unset falls back to LOCAL_MODEL_NAME,
+ * so a single-model setup (just LOCAL_MODEL_NAME) keeps working unchanged.
  *
  * Document input (PDF reading) works differently here than in GeminiModel:
  * a local text model has no native way to read a PDF's raw bytes the way
@@ -20,6 +26,19 @@ import type { ChatTurn, GenerationOptions, PriorbyteModel } from './types';
  * could still handle. That gap is exactly what the Gemini fallback in
  * FallbackModel exists to cover.
  */
+
+const TASK_MODEL_ENV: Record<ModelTask, string> = {
+  chat: 'LOCAL_MODEL_CHAT',
+  reasoning: 'LOCAL_MODEL_REASONING',
+  structured: 'LOCAL_MODEL_STRUCTURED',
+  general: 'LOCAL_MODEL_NAME',
+};
+
+function resolveModelName(task: ModelTask): string {
+  const taskSpecific = process.env[TASK_MODEL_ENV[task]];
+  return taskSpecific || process.env.LOCAL_MODEL_NAME || 'llama3.1:8b';
+}
+
 export class LocalModel implements PriorbyteModel {
   isConfigured(): boolean {
     return Boolean(process.env.LOCAL_MODEL_URL);
@@ -33,7 +52,7 @@ export class LocalModel implements PriorbyteModel {
     const baseUrl = process.env.LOCAL_MODEL_URL;
     if (!baseUrl) return null;
 
-    const modelName = process.env.LOCAL_MODEL_NAME ?? 'llama3.1:8b';
+    const modelName = resolveModelName(options.task ?? 'general');
 
     try {
       const res = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
@@ -72,7 +91,7 @@ export class LocalModel implements PriorbyteModel {
     // history collapsed into the prompt keeps this simple without a second
     // request shape just for multi-turn.
     const transcript = history.map((t) => `${t.role === 'user' ? 'Student' : 'Tutor'}: ${t.content}`).join('\n');
-    return this.complete(TUTOR_SYSTEM_PROMPT, transcript);
+    return this.complete(TUTOR_SYSTEM_PROMPT, transcript, { task: 'chat' });
   }
 
   async generateText(
@@ -87,9 +106,13 @@ export class LocalModel implements PriorbyteModel {
     systemPrompt: string,
     userPrompt: string,
     responseSchema: object,
+    options: GenerationOptions = {},
   ): Promise<T | null> {
     const schemaHint = `\n\nRespond with ONLY valid JSON matching this shape, no prose: ${JSON.stringify(responseSchema)}`;
-    const raw = await this.complete(systemPrompt, `${userPrompt}${schemaHint}`, { jsonMode: true });
+    const raw = await this.complete(systemPrompt, `${userPrompt}${schemaHint}`, {
+      ...options,
+      jsonMode: true,
+    });
     if (!raw) return null;
     try {
       return JSON.parse(raw) as T;

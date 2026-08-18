@@ -107,6 +107,10 @@ export class GeminiModel implements PriorbyteModel {
     systemPrompt: string,
     userPrompt: string,
     responseSchema: object,
+    // `task` is only meaningful to providers that route between multiple
+    // models (LocalModel) -- Gemini has exactly one model, so this is
+    // accepted for interface compatibility and otherwise ignored.
+    _options?: GenerationOptions,
   ): Promise<T | null> {
     const raw = await this.callGemini(systemPrompt, [{ role: 'user', parts: [{ text: userPrompt }] }], {
       maxOutputTokens: 8192,

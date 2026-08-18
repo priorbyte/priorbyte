@@ -90,7 +90,9 @@ export async function ensureVulnerabilityModel(
     const transcript = signal.map((e) => `[${e.type}] ${e.content}`).join('\n---\n');
     const prompt = `Known topics (use only these slugs in relatedTopicSlugs):\n${topicList}\n\nCaptured events:\n${transcript}`;
 
-    const raw = await generateJSON<RawPattern[]>(SYSTEM_PROMPT, prompt, RESPONSE_SCHEMA);
+    const raw = await generateJSON<RawPattern[]>(SYSTEM_PROMPT, prompt, RESPONSE_SCHEMA, {
+      task: 'reasoning',
+    });
     if (raw) {
       patterns = Object.fromEntries(
         raw.map((p) => [

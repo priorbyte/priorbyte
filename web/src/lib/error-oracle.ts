@@ -98,7 +98,9 @@ Known misconceptions for this topic: ${topic.misconceptions.join('; ') || 'none 
 Student's broader vulnerability patterns:
 ${patternSummary || 'none yet — not enough captured signal, use the topic misconceptions instead'}`;
 
-    const result = await generateJSON<OraclePrediction>(SYSTEM_PROMPT, prompt, RESPONSE_SCHEMA);
+    const result = await generateJSON<OraclePrediction>(SYSTEM_PROMPT, prompt, RESPONSE_SCHEMA, {
+      task: 'reasoning',
+    });
     if (!result) continue;
 
     const { error } = await supabase.from('predicted_errors').insert({
