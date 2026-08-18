@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import { createClient } from '@/lib/supabase/client';
+import { PasswordInput } from '@/components/password-input';
 import { signIn, signUp, type AuthState } from './actions';
 
 const INITIAL: AuthState = { status: 'idle' };
@@ -112,14 +113,7 @@ export function LoginForm({ next }: { next: string }) {
                 Forgot password?
               </Link>
             </div>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
-            />
+            <PasswordInput id="password" name="password" required autoComplete="current-password" />
           </div>
           <SubmitButton label="Sign in" pendingLabel="Signing in…" />
           {signInState.status === 'error' && (
@@ -180,15 +174,13 @@ export function LoginForm({ next }: { next: string }) {
             <label htmlFor="signup-password" className="pb-label block">
               Password
             </label>
-            <input
+            <PasswordInput
               id="signup-password"
               name="password"
-              type="password"
               required
               minLength={8}
               autoComplete="new-password"
               placeholder="At least 8 characters"
-              className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60 focus:shadow-glow"
             />
           </div>
           <SubmitButton label="Create account" pendingLabel="Creating…" />

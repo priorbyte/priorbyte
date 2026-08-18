@@ -1,6 +1,7 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
+import { PasswordInput } from '@/components/password-input';
 import { updatePassword, type UpdatePasswordState } from './actions';
 
 const INITIAL: UpdatePasswordState = { status: 'idle' };
@@ -27,15 +28,13 @@ export function UpdatePasswordForm() {
         <label htmlFor="password" className="pb-label block">
           New password
         </label>
-        <input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
           placeholder="At least 8 characters"
-          className="w-full rounded-lg border border-line bg-background px-4 py-3 text-white outline-none transition placeholder:text-muted focus:border-cyan/60"
         />
       </div>
       <SubmitButton />
