@@ -14,6 +14,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
       <Tabs.Screen name="tutor" options={{ title: 'Tutor' }} />
+      <Tabs.Screen name="tools" options={{ title: 'Tools', headerShown: false }} />
       <Tabs.Screen name="timeline" options={{ title: 'Timeline' }} />
       <Tabs.Screen name="ghost-score" options={{ title: 'Score' }} />
       <Tabs.Screen name="memory" options={{ title: 'Memory' }} />
