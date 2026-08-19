@@ -11,6 +11,7 @@
     "clean": "rimraf .next .turbo *.tsbuildinfo"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1113.0",
     "@priorbyte/shared": "workspace:*",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.47.12",

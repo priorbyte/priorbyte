@@ -3,6 +3,7 @@
 import { generateTextFromDocument, isGeminiConfigured } from '@/lib/gemini';
 import { checkQuota, logAiUsage } from '@/lib/ai-usage';
 import { createClient } from '@/lib/supabase/server';
+import { uploadToR2 } from '@/lib/r2';
 
 export interface PdfReaderState {
   status: 'idle' | 'ok' | 'error';
@@ -61,12 +62,22 @@ export async function readPdf(_prev: PdfReaderState, formData: FormData): Promis
 
   await logAiUsage(supabase, user.id, 'pdf_reader');
 
+  // Best-effort: keep the original PDF in R2 so it can be re-opened later.
+  // Not required for the tool to work — uploadToR2 no-ops without config.
+  const r2Key = await uploadToR2(
+    `pdf-reader/${user.id}/${Date.now()}-${fileName}`,
+    Buffer.from(base64Data, 'base64'),
+    mimeType,
+  );
+
   // The summary, not the raw PDF binary, is what's worth capturing as
-  // signal — it's real text Ghost Memory can actually search.
+  // signal — it's real text Ghost Memory can actually search. The R2 key
+  // (when storage is configured) rides along in the same text field rather
+  // than a new column, since learning_events has none for it.
   await supabase.from('learning_events').insert({
     user_id: user.id,
     type: 'reading',
-    content: `[${fileName}]\n\n${summary}`,
+    content: `[${fileName}]${r2Key ? ` (stored: ${r2Key})` : ''}\n\n${summary}`,
     source: 'tool_pdf_reader',
   });
 
