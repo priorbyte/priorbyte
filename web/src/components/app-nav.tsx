@@ -9,6 +9,7 @@ const LINKS = [
   { href: '/tutor', label: 'AI Tutor', icon: 'memory' },
   { href: '/tools', label: 'Learning Tools', icon: 'build' },
   { href: '/courses', label: 'Courses', icon: 'school' },
+  { href: '/marketplace', label: 'Campus Opportunities', icon: 'storefront' },
 ] as const;
 
 const GHOST_LINKS = [

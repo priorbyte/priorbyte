@@ -77,6 +77,22 @@ export type CourseRow = {
   updated_at: string;
 }
 
+export type ListingStatus = 'open' | 'claimed' | 'completed' | 'cancelled';
+
+export type CampusListingRow = {
+  id: string;
+  posted_by: string;
+  title: string;
+  description: string;
+  category: string;
+  status: ListingStatus;
+  claimed_by: string | null;
+  claimed_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type CourseEnrollmentRow = {
   course_id: string;
   user_id: string;
@@ -239,6 +255,7 @@ export type Database = {
     Tables: {
       profiles: TableShape<ProfileRow, 'id' | 'email'>;
       courses: TableShape<CourseRow, 'code' | 'title'>;
+      campus_listings: TableShape<CampusListingRow, 'posted_by' | 'title' | 'description' | 'category'>;
       course_enrollments: TableShape<CourseEnrollmentRow, 'course_id' | 'user_id'>;
       course_staff: TableShape<CourseStaffRow, 'course_id' | 'user_id'>;
       knowledge_graph: TableShape<KnowledgeGraphRow, 'slug' | 'title' | 'subject'>;

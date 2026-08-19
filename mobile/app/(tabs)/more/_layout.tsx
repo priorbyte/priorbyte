@@ -15,6 +15,7 @@ export default function MoreLayout() {
       <Stack.Screen name="memory" options={{ title: 'Memory' }} />
       <Stack.Screen name="courses" options={{ title: 'Courses' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="marketplace" options={{ title: 'Campus Opportunities' }} />
     </Stack>
   );
 }

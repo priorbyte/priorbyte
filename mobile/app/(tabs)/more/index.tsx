@@ -6,6 +6,7 @@ import { COLORS, FONTS, SPACING } from '@/lib/theme';
 const MORE_LINKS = [
   { slug: 'memory', name: 'Memory', description: 'Search everything you’ve ever captured.' },
   { slug: 'courses', name: 'Courses', description: 'Browse and manage your enrollments.' },
+  { slug: 'marketplace', name: 'Campus Opportunities', description: 'Trade time and skills with other verified students.' },
   { slug: 'settings', name: 'Settings', description: 'Your account and app preferences.' },
 ] as const;
 
