@@ -28,8 +28,8 @@ export default async function MarketplacePage() {
         <p className="pb-label">Campus Opportunities</p>
         <h1 className="mt-2 text-4xl">Trade time, skills, and help.</h1>
         <p className="mt-2 max-w-2xl text-silver">
-          A gig board for verified students only — post a task, claim someone else's, settle payment
-          directly between yourselves. Priorbyte doesn't take a cut and doesn't handle the money.
+          A gig board for verified students only — post a task, claim someone else&apos;s, settle payment
+          directly between yourselves. Priorbyte doesn&apos;t take a cut and doesn&apos;t handle the money.
         </p>
       </div>
 

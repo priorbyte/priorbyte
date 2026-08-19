@@ -68,7 +68,7 @@ export function PostForm() {
         {pending ? 'Posting…' : 'Post listing'}
       </button>
       <p className="text-xs text-muted">
-        Payment and pickup terms are worked out directly with whoever claims this — Priorbyte doesn't handle money.
+        Payment and pickup terms are worked out directly with whoever claims this — Priorbyte doesn&apos;t handle money.
       </p>
     </form>
   );
