@@ -12,6 +12,7 @@ export default function ToolsLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Learning Tools' }} />
+      <Stack.Screen name="pdf-reader" options={{ title: 'PDF Reader' }} />
     </Stack>
   );
 }

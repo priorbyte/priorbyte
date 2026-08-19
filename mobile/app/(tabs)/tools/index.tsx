@@ -11,6 +11,7 @@ const TOOLS = [
   { slug: 'flashcards', name: 'Flashcards', description: 'Turn material into study flashcards.' },
   { slug: 'quiz', name: 'Quiz Generator', description: 'Multiple-choice questions from your material.' },
   { slug: 'mindmap', name: 'Mind Map', description: 'Visual tree of a topic’s structure.' },
+  { slug: 'pdf-reader', name: 'PDF Reader', description: 'Upload a PDF and get a study-ready breakdown.' },
 ] as const;
 
 export default function ToolsHubScreen() {
@@ -32,7 +33,7 @@ export default function ToolsHubScreen() {
           <Pressable
             onPress={() =>
               router.push(
-                item.slug === 'flashcards' || item.slug === 'quiz' || item.slug === 'mindmap'
+                item.slug === 'flashcards' || item.slug === 'quiz' || item.slug === 'mindmap' || item.slug === 'pdf-reader'
                   ? `/tools/${item.slug}`
                   : { pathname: '/tools/[tool]', params: { tool: item.slug } },
               )
