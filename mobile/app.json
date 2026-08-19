@@ -2,6 +2,7 @@
   "expo": {
     "name": "Priorbyte",
     "slug": "priorbyte",
+    "owner": "priorbyte",
     "scheme": "priorbyte",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -31,6 +32,12 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8a7624db-404a-487f-bdd8-18051d8013f4"
+      }
     }
   }
 }

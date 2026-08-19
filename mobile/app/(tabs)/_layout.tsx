@@ -12,15 +12,11 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontFamily: FONTS.label, fontSize: 10, textTransform: 'uppercase' },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="tutor" options={{ title: 'Tutor' }} />
       <Tabs.Screen name="tools" options={{ title: 'Tools', headerShown: false }} />
-      <Tabs.Screen name="timeline" options={{ title: 'Timeline' }} />
-      <Tabs.Screen name="ghost-score" options={{ title: 'Score' }} />
-      <Tabs.Screen name="memory" options={{ title: 'Memory' }} />
-      <Tabs.Screen name="oracle" options={{ title: 'Oracle' }} />
-      <Tabs.Screen name="courses" options={{ title: 'Courses' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Settings' }} />
+      <Tabs.Screen name="ghost" options={{ title: 'Ghost', headerShown: false }} />
+      <Tabs.Screen name="more" options={{ title: 'More', headerShown: false }} />
     </Tabs>
   );
 }
