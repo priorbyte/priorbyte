@@ -8,6 +8,19 @@
 -- (UPI/cash), so there's no escrow or payments schema here — this table is
 -- just the listing board itself: post a task, someone claims it, mark done.
 
+-- Defensive: earlier migrations define this, but this file needs to be
+-- runnable standalone against a live database where the migration history
+-- may not line up with what's actually been applied.
+create or replace function public.set_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
 create type public.listing_status as enum ('open', 'claimed', 'completed', 'cancelled');
 
 create table public.campus_listings (
